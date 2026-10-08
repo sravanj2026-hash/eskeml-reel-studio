@@ -1,0 +1,14 @@
+{
+  "name": "eskeml-reel-studio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Drop a jewellery photo and get AI cut-outs, AI backdrops, AI motion clips and branded Instagram reels.",
+  "scripts": {
+    "dev": "node dev-server.js"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.128.0"
+  }
+}

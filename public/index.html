@@ -1,0 +1,1206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Eskeml AI Reel Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Alex+Brush&family=Manrope:wght@400;500;700&display=swap">
+<style>
+/* Layout: an editing bench. Controls left, phone-shaped preview centre, style rack right; stacks on phones. Single dark look in the brand's maroon and gold. */
+:root{
+  --bg:#170a10; --panel:#22111a; --panel2:#2d1622; --line:#4a2a37;
+  --fg:#f4e9df; --muted:#b99f9a; --gold:#e3a923; --gold2:#f6d27a; --maroon:#3a0f1f;
+  --ok:#7fd49a; --warn:#f0a35e;
+  --display:"Cinzel",Georgia,serif; --script:"Alex Brush",cursive; --ui:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+html,body{background:var(--bg);color:var(--fg)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+body{font-family:var(--ui);font-size:14px;line-height:1.5;padding-inline:16px;padding-block:0 32px}
+*{box-sizing:border-box}
+header.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding-block:18px 14px;border-bottom:1px solid var(--line);margin-bottom:18px}
+header.top h1{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:.08em;margin:0;color:var(--gold);text-wrap:balance}
+header.top h1 span{font-family:var(--script);font-weight:400;letter-spacing:0;font-size:30px;color:var(--gold2);margin-right:6px}
+header.top p{margin:0;color:var(--muted);flex:1 1 260px;min-width:0}
+.app{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr) minmax(0,300px);gap:18px;align-items:start}
+@media (max-width:1080px){.app{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.rack{grid-column:1/-1}}
+@media (max-width:720px){.app{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.panel h2{font-family:var(--display);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0}
+.drop{border:1.5px dashed var(--line);border-radius:8px;padding:12px;display:flex;gap:12px;align-items:center;cursor:pointer;background:var(--panel2)}
+.drop.over{border-color:var(--gold)}
+.drop img{width:64px;height:64px;object-fit:cover;border-radius:6px;background:#000;flex:none}
+.drop div{min-width:0}
+.drop b{display:block}
+.drop small{color:var(--muted)}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);letter-spacing:.02em}
+input[type=text],select,textarea{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font:inherit;font-size:14px;width:100%}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,.style:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{font:inherit;cursor:pointer;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--fg);padding:9px 14px;font-weight:500}
+button:hover:not(:disabled){border-color:var(--gold)}
+button:disabled{opacity:.5;cursor:default}
+button.primary{background:var(--gold);border-color:var(--gold);color:#2a0b16;font-weight:700}
+button.primary:hover:not(:disabled){background:var(--gold2)}
+.ai{background:linear-gradient(160deg,#3a1526,#22111a);border-color:#6b3a2a}
+.ai p{margin:0;color:var(--muted);font-size:13px}
+.note{font-size:12px;color:var(--muted)}
+.caption{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px;font-size:13px;white-space:pre-wrap;max-height:180px;overflow:auto}
+.stage{display:flex;flex-direction:column;align-items:center;gap:12px;min-width:0}
+.phone{position:relative;width:min(100%,360px);background:#000;border-radius:22px;padding:8px;border:1px solid var(--line);box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.phone canvas{display:block;width:100%;height:auto;border-radius:15px;background:#000}
+.phone .badge{position:absolute;top:18px;left:18px;font-size:11px;background:rgba(0,0,0,.55);padding:3px 8px;border-radius:20px;color:var(--gold2);letter-spacing:.06em}
+.controls{display:flex;gap:8px;align-items:center;width:min(100%,360px);flex-wrap:wrap}
+.controls input[type=range]{flex:1;accent-color:var(--gold);min-width:120px}
+.time{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px;min-width:74px;text-align:right}
+.opts{display:flex;gap:10px;width:min(100%,360px);flex-wrap:wrap}
+.opts label{flex:1 1 140px}
+.render{width:min(100%,360px);display:flex;gap:8px;flex-wrap:wrap}
+.render button{flex:1 1 140px}
+.progress{width:min(100%,360px);height:6px;background:var(--panel2);border-radius:4px;overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.status{width:min(100%,360px);font-size:13px;color:var(--muted);min-height:20px}
+.rack .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:10px}
+.style{position:relative;border:1px solid var(--line);border-radius:8px;overflow:hidden;cursor:pointer;background:var(--panel2);display:flex;flex-direction:column}
+.style canvas{width:100%;height:auto;display:block;aspect-ratio:9/16;background:#000}
+.style.sq canvas{aspect-ratio:1/1}.style.p45 canvas{aspect-ratio:4/5}
+.style .meta{padding:7px 8px 9px}
+.style b{font-size:13px;display:block}
+.style small{color:var(--muted);font-size:11px;line-height:1.35;display:block}
+.style.on{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+.pick{position:absolute;top:6px;right:6px;background:var(--gold);color:#2a0b16;font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;letter-spacing:.04em}
+.results{display:flex;flex-direction:column;gap:10px}
+.result{display:flex;gap:10px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px}
+.result video{width:64px;border-radius:5px;background:#000;flex:none}
+.result div{flex:1;min-width:0}
+.result b{display:block;font-size:13px}
+.result small{color:var(--muted)}
+.empty{color:var(--muted);font-size:13px}
+.hide{display:none!important}
+.edit{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.edit h3{margin:0;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold2);font-weight:700}
+.chk{display:flex;gap:8px;align-items:center;font-size:13px;cursor:pointer}
+.chk input{accent-color:var(--gold);width:16px;height:16px}
+.sl{display:grid;grid-template-columns:78px minmax(0,1fr) 34px;gap:8px;align-items:center;font-size:12px;color:var(--muted)}
+.sl input{accent-color:var(--gold);width:100%}
+.sl output{font-variant-numeric:tabular-nums;text-align:right}
+.sub{display:flex;flex-direction:column;gap:8px;padding-left:24px}
+.edit .btns{display:flex;gap:8px;flex-wrap:wrap}
+.edit .btns button{padding:6px 10px;font-size:12px}
+.aistudio{display:flex;flex-direction:column;gap:10px}
+.aistudio .grp{display:flex;flex-direction:column;gap:6px;padding-top:10px;border-top:1px solid var(--line)}
+.aistudio .grp:first-of-type{border-top:0;padding-top:0}
+.pill{display:inline-block;font-size:11px;padding:1px 8px;border-radius:10px;border:1px solid var(--line);color:var(--muted);margin-left:6px;font-weight:500;letter-spacing:0;text-transform:none}
+.pill.on{color:var(--ok);border-color:var(--ok)}
+.result a{color:var(--gold2)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+</head>
+<body>
+<header class="top">
+  <h1><span>Eskeml</span>AI Reel Studio</h1>
+  <p>Drop in a jewellery photo, let Claude write the words, pick a look, and render a reel ready for Instagram.</p>
+</header>
+
+<div class="app">
+  <section class="panel" aria-label="Photo and details">
+    <h2>1 · Your piece</h2>
+    <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose a jewellery photo">
+      <img id="thumb" alt="">
+      <div><b id="photoName">Sample ring (example)</b><small>Click, drop or paste a jewellery photo</small></div>
+    </div>
+    <input type="file" id="file" accept="image/*" class="hide">
+    <label class="chk"><input type="checkbox" id="auto" checked> One-click: clean up the photo, write the words and render Claude's 3 picks as soon as I add a photo</label>
+    <label class="chk" id="autoClipWrap" hidden><input type="checkbox" id="autoClip" checked> Also make an AI motion clip</label>
+
+    <div class="panel ai aistudio" id="aiStudio" aria-label="AI studio">
+      <h2>AI studio</h2>
+      <p class="note" id="aiNote">Checking which AI services are switched on…</p>
+      <label class="f" id="passWrap" hidden>Studio passcode<input type="password" id="passcode" autocomplete="current-password"></label>
+      <div class="grp">
+        <b>Clean cut-out <span class="pill" id="pillPR">Photoroom</span></b>
+        <small class="note">Removes any background, even hands, velvet or busy shop counters.</small>
+        <div class="btns"><button id="aiCut" disabled>AI cut-out</button><button id="aiRestore" disabled>Back to original</button></div>
+      </div>
+      <div class="grp">
+        <b>New backdrop</b>
+        <select id="bdPrompt" aria-label="Backdrop idea">
+          <option>deep maroon velvet with soft gold bokeh lights</option>
+          <option>white Carrara marble with scattered rose petals, soft daylight</option>
+          <option>brass temple diya and marigold flowers, warm festive glow</option>
+          <option>cream silk fabric folds in warm golden-hour sunlight</option>
+          <option>black glossy surface with dramatic spotlight and reflections</option>
+        </select>
+        <input type="text" id="bdCustom" placeholder="Or describe your own backdrop" aria-label="Custom backdrop">
+        <button id="aiBackdrop" disabled>Generate backdrop</button>
+      </div>
+      <div class="grp">
+        <b>AI motion clip <span class="pill" id="pillRW">Runway</span></b>
+        <select id="mvPrompt" aria-label="Motion idea">
+          <option>slow 360 degree turntable rotation, sparkling highlights on the stones, soft studio light</option>
+          <option>camera slowly pushes in, a sweep of light glints across the gold and gemstones</option>
+          <option>gentle rose petals drift down around the jewellery, cinematic shallow depth of field</option>
+          <option>slow orbit around the piece, light flares and bokeh shimmer in the background</option>
+        </select>
+        <input type="text" id="mvCustom" placeholder="Or describe the motion" aria-label="Custom motion">
+        <div class="row2">
+          <label class="f">Length<select id="mvDur"><option value="5">5 seconds</option><option value="10">10 seconds</option></select></label>
+          <label class="f">&nbsp;<button class="primary" id="aiVideo" disabled>Generate clip</button></label>
+        </div>
+        <small class="note">AI clips use the Format chosen under the preview and take a minute or two.</small>
+      </div>
+    </div>
+
+    <div class="edit" aria-label="Edit photo">
+      <h3>Edit photo</h3>
+      <label class="chk"><input type="checkbox" id="e_cut"> Remove background</label>
+      <div class="sub hide" id="cutOpts">
+        <div class="sl"><span>Strength</span><input type="range" id="e_tol" min="4" max="90" value="22"><output id="o_tol">22</output></div>
+        <div class="sl"><span>Soft edge</span><input type="range" id="e_feather" min="0" max="8" value="2"><output id="o_feather">2</output></div>
+        <label class="chk"><input type="checkbox" id="e_holes" checked> Clear gaps inside the piece (rings, hoops)</label>
+        <label class="chk"><input type="checkbox" id="e_trim" checked> Zoom in to the piece</label>
+        <small class="note">Works best on plain white, black or single-colour backdrops. Raise Strength if bits of backdrop remain; lower it if the piece gets eaten.</small>
+      </div>
+      <div class="sl"><span>Brightness</span><input type="range" id="e_bright" min="-50" max="50" value="0"><output id="o_bright">0</output></div>
+      <div class="sl"><span>Contrast</span><input type="range" id="e_contrast" min="-50" max="50" value="0"><output id="o_contrast">0</output></div>
+      <div class="sl"><span>Colour</span><input type="range" id="e_sat" min="-50" max="60" value="0"><output id="o_sat">0</output></div>
+      <div class="sl"><span>Warmth</span><input type="range" id="e_warm" min="-40" max="40" value="0"><output id="o_warm">0</output></div>
+      <div class="btns"><button id="e_gold">Gold glow preset</button><button id="e_reset">Reset edits</button></div>
+    </div>
+
+    <div class="panel ai" id="aiBox">
+      <h2>Claude's direction <span class="pill" id="pillCL">Claude</span></h2>
+      <p id="aiText">Claude looks at the photo, names the piece, writes the on-screen words and an Instagram caption, and picks the styles that suit it.</p>
+      <button class="primary" id="aiBtn" disabled>Write it with Claude</button>
+      <div id="captionWrap" class="hide">
+        <div class="caption" id="caption"></div>
+        <button id="copyCap" style="margin-top:8px">Copy caption</button>
+      </div>
+    </div>
+
+    <label class="f">Piece name<input type="text" id="t_title" value="Kundan Bridal Ring"></label>
+    <label class="f">Tagline<input type="text" id="t_tagline" value="Crafted for your forever"></label>
+    <div class="row2">
+      <label class="f">Price<input type="text" id="t_price" value="₹ 48,500"></label>
+      <label class="f">Offer<input type="text" id="t_offer" value="0% making charges"></label>
+    </div>
+    <div class="row2">
+      <label class="f">Brand<input type="text" id="t_brand" value="Eskeml"></label>
+      <label class="f">Handle<input type="text" id="t_handle" value="@eskemljewellery"></label>
+    </div>
+    <div class="drop" id="logoDrop" tabindex="0" role="button" aria-label="Change end-card logo">
+      <img id="logoThumb" alt="">
+      <div><b>End-card logo</b><small>Your Eskeml card. Click to replace.</small></div>
+    </div>
+    <input type="file" id="logoFile" accept="image/*" class="hide">
+  </section>
+
+  <section class="stage" aria-label="Preview">
+    <div class="phone"><canvas id="cv" width="1080" height="1920"></canvas><span class="badge" id="styleBadge">Royal Reveal</span></div>
+    <div class="controls">
+      <button id="playBtn" aria-label="Play or pause">Pause</button>
+      <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Timeline">
+      <span class="time" id="time">0.0 / 9.0s</span>
+    </div>
+    <div class="opts">
+      <label class="f">Format<select id="aspect"><option value="9:16">Reel / Story 9:16</option><option value="4:5">Feed post 4:5</option><option value="1:1">Square 1:1</option></select></label>
+      <label class="f">Backdrop<select id="theme"><option value="maroon">Eskeml maroon</option><option value="midnight">Midnight black</option><option value="emerald">Emerald</option><option value="royal">Royal blue</option><option value="rose">Rose wine</option></select></label>
+      <label class="f">Music<select id="music"><option value="chimes">Soft temple chimes</option><option value="festive">Festive beat</option><option value="none">No music</option></select></label>
+    </div>
+    <div class="render">
+      <button class="primary" id="renderBtn">Render this style</button>
+      <button id="renderAllBtn">Render all 7 piece styles</button>
+    </div>
+    <div class="progress"><i id="bar"></i></div>
+    <div class="status" id="status">Rendering plays the reel in real time. Keep this tab in front until it finishes.</div>
+  </section>
+
+  <section class="panel rack" aria-label="Styles and renders">
+    <h2>2 · Pick a style</h2>
+    <div class="list" id="styles"></div>
+    <h2>Logo videos</h2>
+    <div class="list" id="logoStyles"></div>
+    <h2>3 · Your reels</h2>
+    <div class="results" id="results"><p class="empty" id="noResults">Rendered videos appear here, ready to save.</p></div>
+  </section>
+</div>
+
+<script>
+(() => {
+const LOGO_SRC = "eskeml-logo.jpg";
+const $ = id => document.getElementById(id);
+const TAU = Math.PI * 2;
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const easeOut = t => 1 - Math.pow(1 - clamp(t), 3);
+const easeBack = t => { t = clamp(t); const c = 1.9; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+function rng(seed) { return () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }; }
+
+const PAL = { maroon: "#3a0f1f", deep: "#1c0710", gold: "#e3a923", gold2: "#f6d27a", cream: "#fbf1dc" };
+const END = 2.2; // seconds of brand end card
+
+/* ---------- state ---------- */
+const S = { theme: "maroon", W: 1080, H: 1920, img: null, logo: null, sparks: [], text: {}, style: "royal", picks: [] };
+const fields = ["title", "tagline", "price", "offer", "brand", "handle"];
+function readText() { fields.forEach(f => S.text[f] = $("t_" + f).value.trim()); }
+readText();
+
+/* ---------- sample piece (drawn, so the studio opens working) ---------- */
+function makeSample() {
+  const c = document.createElement("canvas"); c.width = 1000; c.height = 1000;
+  const g = c.getContext("2d");
+  let bg = g.createRadialGradient(500, 430, 50, 500, 500, 720);
+  bg.addColorStop(0, "#f3e6da"); bg.addColorStop(1, "#d6c2b2");
+  g.fillStyle = bg; g.fillRect(0, 0, 1000, 1000);
+  // shadow
+  g.fillStyle = "rgba(60,30,20,.28)"; g.beginPath(); g.ellipse(500, 800, 300, 50, 0, 0, TAU); g.fill();
+  // band
+  g.lineWidth = 70;
+  let band = g.createLinearGradient(220, 0, 780, 0);
+  band.addColorStop(0, "#7a4a0c"); band.addColorStop(.25, "#f6d27a"); band.addColorStop(.5, "#b67916"); band.addColorStop(.75, "#ffe7a6"); band.addColorStop(1, "#7a4a0c");
+  g.strokeStyle = band; g.beginPath(); g.ellipse(500, 590, 250, 190, 0, 0, TAU); g.stroke();
+  g.lineWidth = 8; g.strokeStyle = "rgba(255,240,200,.6)"; g.beginPath(); g.ellipse(500, 590, 222, 163, 0, Math.PI * 1.05, Math.PI * 1.95); g.stroke();
+  // setting
+  g.fillStyle = "#c58a1c"; g.beginPath(); g.moveTo(400, 420); g.lineTo(600, 420); g.lineTo(560, 470); g.lineTo(440, 470); g.closePath(); g.fill();
+  // side stones
+  for (const [x, y, r] of [[330, 470, 26], [670, 470, 26], [380, 440, 20], [620, 440, 20]]) {
+    let s = g.createRadialGradient(x - 6, y - 6, 2, x, y, r); s.addColorStop(0, "#fff"); s.addColorStop(.5, "#d9f0ff"); s.addColorStop(1, "#7aa4c4");
+    g.fillStyle = s; g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill();
+  }
+  // centre gem (ruby, faceted)
+  const cx = 500, cy = 330, R = 120;
+  g.fillStyle = "#e3a923"; g.beginPath(); g.arc(cx, cy, R + 18, 0, TAU); g.fill();
+  const pts = []; for (let i = 0; i < 8; i++) { const a = i / 8 * TAU + Math.PI / 8; pts.push([cx + Math.cos(a) * R, cy + Math.sin(a) * R]); }
+  const inner = pts.map(([x, y]) => [cx + (x - cx) * .5, cy + (y - cy) * .5]);
+  const facet = ["#8c0f2b", "#c0183d", "#e8365f", "#a3122f", "#6d0a20", "#b5163a", "#f05476", "#9a1030"];
+  for (let i = 0; i < 8; i++) {
+    const j = (i + 1) % 8; g.fillStyle = facet[i]; g.beginPath();
+    g.moveTo(...pts[i]); g.lineTo(...pts[j]); g.lineTo(...inner[j]); g.lineTo(...inner[i]); g.closePath(); g.fill();
+  }
+  let tbl = g.createLinearGradient(cx - 60, cy - 60, cx + 60, cy + 60); tbl.addColorStop(0, "#ff8aa5"); tbl.addColorStop(1, "#a0112f");
+  g.fillStyle = tbl; g.beginPath(); inner.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath(); g.fill();
+  g.fillStyle = "rgba(255,255,255,.85)"; g.beginPath(); g.ellipse(cx - 30, cy - 34, 22, 9, -.6, 0, TAU); g.fill();
+  // kundan dots
+  for (let i = 0; i < 16; i++) { const a = i / 16 * TAU; g.fillStyle = "#fff6e0"; g.beginPath(); g.arc(cx + Math.cos(a) * (R + 9), cy + Math.sin(a) * (R + 9), 6, 0, TAU); g.fill(); }
+  return c;
+}
+
+/* ---------- bright spots for sparkles ---------- */
+function findSparks(img) {
+  const n = 72, c = document.createElement("canvas"); c.width = n; c.height = n;
+  const g = c.getContext("2d", { willReadFrequently: true });
+  const iw = img.width, ih = img.height, s = Math.min(n / iw, n / ih), ox = (n - iw * s) / 2, oy = (n - ih * s) / 2;
+  g.drawImage(img, ox, oy, iw * s, ih * s);
+  const d = g.getImageData(0, 0, n, n).data, L = new Float32Array(n * n);
+  for (let i = 0; i < n * n; i++) L[i] = d[i * 4 + 3] < 200 ? -1 : d[i * 4] * .3 + d[i * 4 + 1] * .59 + d[i * 4 + 2] * .11;
+  const cand = [];
+  for (let y = Math.ceil(oy) + 2; y < n - oy - 2; y++) for (let x = Math.ceil(ox) + 2; x < n - ox - 2; x++) {
+    const v = L[y * n + x]; if (v < 0) continue; let max = true;
+    for (let dy = -2; dy <= 2 && max; dy++) for (let dx = -2; dx <= 2; dx++) if ((dx || dy) && L[(y + dy) * n + x + dx] > v) { max = false; break; }
+    if (!max) continue;
+    let sum = 0, cnt = 0; for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) { const yy = clamp(y + dy, 0, n - 1), xx = clamp(x + dx, 0, n - 1), lv = L[yy * n + xx]; if (lv >= 0) { sum += lv; cnt++; } }
+    const contrast = v - sum / cnt; // glints stand out from their surroundings; flat bright backdrops don't
+    if (contrast > 6) cand.push({ u: (x - ox) / (iw * s), v: (y - oy) / (ih * s), l: contrast * 2 + v * .15 });
+  }
+  cand.sort((a, b) => b.l - a.l);
+  const out = [];
+  for (const c2 of cand) { if (out.length >= 14) break; if (out.every(o => Math.hypot(o.u - c2.u, o.v - c2.v) > .08)) out.push(c2); }
+  const r = rng(7);
+  while (out.length < 10) out.push({ u: .25 + r() * .5, v: .25 + r() * .5, l: 200 });
+  return out.map((p, i) => ({ ...p, ph: i * .37 % 1, sz: .7 + (i % 3) * .25 }));
+}
+
+/* ---------- drawing helpers ---------- */
+function coverRect(img, W, H, scale = 1, fx = .5, fy = .5) {
+  const s = Math.max(W / img.width, H / img.height) * scale, w = img.width * s, h = img.height * s;
+  return { x: (W - w) * fx, y: (H - h) * fy, w, h };
+}
+function fitRect(img, bw, bh) {
+  const s = Math.min(bw / img.width, bh / img.height); return { w: img.width * s, h: img.height * s };
+}
+function drawImg(g, img, r) { g.drawImage(img, r.x, r.y, r.w, r.h); }
+function roundRect(g, x, y, w, h, r) { g.beginPath(); g.roundRect ? g.roundRect(x, y, w, h, r) : g.rect(x, y, w, h); }
+function star(g, x, y, r, a, rot = 0) {
+  if (a <= 0 || r <= 0) return;
+  g.save(); g.globalCompositeOperation = "lighter"; g.globalAlpha = clamp(a);
+  const glow = g.createRadialGradient(x, y, 0, x, y, r * 1.2);
+  glow.addColorStop(0, "rgba(255,250,230,.95)"); glow.addColorStop(.25, "rgba(255,225,150,.45)"); glow.addColorStop(1, "rgba(255,200,100,0)");
+  g.fillStyle = glow; g.beginPath(); g.arc(x, y, r * 1.2, 0, TAU); g.fill();
+  g.translate(x, y); g.rotate(rot); g.fillStyle = "rgba(255,255,245,.95)";
+  for (let k = 0; k < 2; k++) {
+    g.rotate(k * Math.PI / 4);
+    const L = k ? r * .6 : r * 1.6, w = r * .07;
+    g.beginPath(); g.moveTo(-L, 0); g.quadraticCurveTo(0, -w, L, 0); g.quadraticCurveTo(0, w, -L, 0); g.fill();
+    g.beginPath(); g.moveTo(0, -L); g.quadraticCurveTo(-w, 0, 0, L); g.quadraticCurveTo(w, 0, 0, -L); g.fill();
+  }
+  g.restore();
+}
+function sparkleLayer(g, r, t, intensity = 1, speed = 1, list = S.sparks) {
+  for (const p of list) {
+    const ph = (t * .55 * speed + p.ph) % 1, a = Math.sin(ph * Math.PI);
+    star(g, r.x + p.u * r.w, r.y + p.v * r.h, Math.min(S.W, S.H) * .055 * p.sz * a, a * intensity, t * .6 + p.ph * 6);
+  }
+}
+const sweepCv = document.createElement("canvas");
+function sweep(g, r, p, width = .22, alpha = .55, mask = S.cut ? S.img : null) {
+  if (p <= 0 || p >= 1) return;
+  const span = r.w + r.h, x = r.x - r.h + span * p * 1.3 - span * .15;
+  const paint = (c, ox, oy) => {
+    const gr = c.createLinearGradient(x - ox, r.y - oy, x - ox + r.h, r.y - oy + r.h);
+    gr.addColorStop(clamp(.5 - width), "rgba(255,240,200,0)"); gr.addColorStop(.5, `rgba(255,245,215,${alpha})`); gr.addColorStop(clamp(.5 + width), "rgba(255,240,200,0)");
+    c.fillStyle = gr; c.fillRect(r.x - ox, r.y - oy, r.w, r.h);
+  };
+  if (mask) {
+    // shine only on the piece itself, not its empty surroundings
+    const w = Math.max(1, Math.ceil(r.w)), h = Math.max(1, Math.ceil(r.h));
+    if (sweepCv.width !== w || sweepCv.height !== h) { sweepCv.width = w; sweepCv.height = h; }
+    const c = sweepCv.getContext("2d"); c.clearRect(0, 0, w, h); c.globalCompositeOperation = "source-over"; paint(c, r.x, r.y);
+    c.globalCompositeOperation = "destination-in"; c.drawImage(mask, 0, 0, w, h); c.globalCompositeOperation = "source-over";
+    g.save(); g.globalCompositeOperation = "lighter"; g.drawImage(sweepCv, r.x, r.y, r.w, r.h); g.restore(); return;
+  }
+  g.save(); g.beginPath(); g.rect(r.x, r.y, r.w, r.h); g.clip(); g.globalCompositeOperation = "lighter"; paint(g, 0, 0); g.restore();
+}
+const THEMES = {
+  maroon: { name: "Eskeml maroon", c: ["#4d1328", "#2a0a16", "#14050b"], top: "#5a1430", bot: "#1a050d" },
+  midnight: { name: "Midnight black", c: ["#2a2620", "#121110", "#050505"], top: "#2b2722", bot: "#070707" },
+  emerald: { name: "Emerald", c: ["#0f4a3a", "#08281f", "#03120d"], top: "#11503f", bot: "#04140f" },
+  royal: { name: "Royal blue", c: ["#1c2f6b", "#0e1838", "#060a1a"], top: "#20357a", bot: "#070c1d" },
+  rose: { name: "Rose wine", c: ["#6b2440", "#3d1224", "#1c0610"], top: "#7a2a4a", bot: "#1e0712" },
+};
+const TH = () => THEMES[S.theme] || THEMES.maroon;
+function bgMaroon(g, t, cx = .5, cy = .45) {
+  const { W, H } = S, th = TH();
+  const gr = g.createRadialGradient(W * cx, H * cy, 0, W * cx, H * cy, Math.max(W, H) * .8);
+  gr.addColorStop(0, th.c[0]); gr.addColorStop(.6, th.c[1]); gr.addColorStop(1, th.c[2]);
+  g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  // woven diagonal dashes, echoing the Eskeml card
+  g.save(); g.strokeStyle = "rgba(255,190,120,.05)"; g.lineWidth = W * .008; g.lineCap = "round";
+  const step = W * .07, off = (t * 8) % step;
+  for (let y = -step; y < H + step; y += step) for (let x = -step; x < W + step; x += step) {
+    const odd = ((x / step | 0) + (y / step | 0)) & 1;
+    g.beginPath();
+    if (odd) { g.moveTo(x + off, y); g.lineTo(x + off + step * .45, y + step * .45); } else { g.moveTo(x + off + step * .2, y + step * .55); g.lineTo(x + off + step * .55, y + step * .2); }
+    g.stroke();
+  }
+  g.restore();
+}
+function vignette(g, a = .55) {
+  const { W, H } = S, gr = g.createRadialGradient(W / 2, H / 2, Math.min(W, H) * .35, W / 2, H / 2, Math.max(W, H) * .75);
+  gr.addColorStop(0, "rgba(0,0,0,0)"); gr.addColorStop(1, `rgba(10,2,6,${a})`); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+}
+function goldGrad(g, y0, y1) {
+  const gr = g.createLinearGradient(0, y0, 0, y1);
+  gr.addColorStop(0, "#fff0b8"); gr.addColorStop(.45, "#e9b23a"); gr.addColorStop(.55, "#c98a12"); gr.addColorStop(1, "#ffe59a"); return gr;
+}
+function fitFont(g, txt, font, size, maxW) { let s = size; g.font = `${font.replace("SZ", s)}`; while (g.measureText(txt).width > maxW && s > 10) { s *= .93; g.font = font.replace("SZ", s); } return s; }
+function text(g, str, x, y, { size = 80, font = "700 SZpx Cinzel, Georgia, serif", fill = "gold", alpha = 1, maxW = S.W * .86, align = "center", shadow = true, track = 0 } = {}) {
+  if (!str || alpha <= 0) return;
+  g.save(); g.globalAlpha = clamp(alpha); g.textAlign = align; g.textBaseline = "middle";
+  const s = fitFont(g, str, font, size, maxW);
+  if (track && "letterSpacing" in g) g.letterSpacing = `${track * s}px`;
+  if (shadow) { g.shadowColor = "rgba(0,0,0,.55)"; g.shadowBlur = s * .3; g.shadowOffsetY = s * .05; }
+  g.fillStyle = fill === "gold" ? goldGrad(g, y - s * .6, y + s * .6) : fill;
+  g.fillText(str, x, y); g.restore();
+}
+const CINZEL = "700 SZpx Cinzel, Georgia, serif", CINZEL5 = "500 SZpx Cinzel, Georgia, serif";
+const SCRIPT = "400 SZpx 'Alex Brush', cursive", UI = "700 SZpx Manrope, system-ui, sans-serif";
+function particles(seed, n) { const r = rng(seed); return Array.from({ length: n }, () => ({ x: r(), y: r(), s: r(), v: r(), p: r() })); }
+const DUST = particles(11, 70), RAIN = particles(23, 120), BOKEH = particles(5, 22);
+function dust(g, t, a = 1) {
+  const { W, H } = S; g.save(); g.globalCompositeOperation = "lighter";
+  for (const d of DUST) {
+    const y = ((d.y - t * (.02 + d.v * .04)) % 1 + 1) % 1, x = d.x + Math.sin(t * .8 + d.p * 9) * .015;
+    const tw = .4 + .6 * Math.sin(t * 3 + d.p * 20) ** 2;
+    g.fillStyle = `rgba(255,215,140,${.55 * tw * a})`; g.beginPath(); g.arc(x * W, y * H, 1.5 + d.s * W * .004, 0, TAU); g.fill();
+  }
+  g.restore();
+}
+function framedCard(g, img, cx, cy, bw, bh, scale = 1, blur = 0) {
+  const f = fitRect(img, bw, bh), w = f.w * scale, h = f.h * scale, r = { x: cx - w / 2, y: cy - h / 2, w, h };
+  if (S.cut) { floatPiece(g, img, r, blur); return r; }
+  g.save(); g.shadowColor = "rgba(0,0,0,.6)"; g.shadowBlur = S.W * .06; g.shadowOffsetY = S.W * .02;
+  g.fillStyle = "#000"; g.fillRect(r.x, r.y, r.w, r.h); g.restore();
+  if (blur > .5) g.filter = `blur(${blur}px)`;
+  drawImg(g, img, r); g.filter = "none";
+  g.strokeStyle = goldGrad(g, r.y, r.y + r.h); g.lineWidth = S.W * .006; g.strokeRect(r.x - S.W * .012, r.y - S.W * .012, r.w + S.W * .024, r.h + S.W * .024);
+  return r;
+}
+function floatPiece(g, img, r, blur = 0) {
+  const { W } = S;
+  g.save(); const halo = g.createRadialGradient(r.x + r.w / 2, r.y + r.h / 2, 0, r.x + r.w / 2, r.y + r.h / 2, Math.max(r.w, r.h) * .7);
+  halo.addColorStop(0, "rgba(255,200,110,.22)"); halo.addColorStop(1, "rgba(255,200,110,0)"); g.fillStyle = halo; g.fillRect(r.x - r.w, r.y - r.h, r.w * 3, r.h * 3); g.restore();
+  g.save(); g.shadowColor = "rgba(0,0,0,.55)"; g.shadowBlur = W * .04; g.shadowOffsetY = W * .02;
+  if (blur > .5) g.filter = `blur(${blur}px)`;
+  drawImg(g, img, r); g.restore();
+}
+function lotus(g, cx, cy, R, petals, rot, alpha = 1, lw = 6) {
+  g.save(); g.translate(cx, cy); g.rotate(rot); g.globalAlpha = alpha;
+  g.strokeStyle = goldGrad(g, -R, R); g.fillStyle = "rgba(227,169,35,.10)"; g.lineWidth = lw; g.lineJoin = "round";
+  for (let i = 0; i < petals; i++) {
+    g.save(); g.rotate(i / petals * TAU);
+    g.beginPath(); g.moveTo(-R * .16, -R * .78); g.quadraticCurveTo(-R * .2, -R * 1.02, 0, -R * 1.18); g.quadraticCurveTo(R * .2, -R * 1.02, R * .16, -R * .78); g.closePath(); g.fill(); g.stroke();
+    g.beginPath(); g.moveTo(0, -R * .84); g.quadraticCurveTo(-R * .06, -R * .95, 0, -R * 1.05); g.quadraticCurveTo(R * .06, -R * .95, 0, -R * .84); g.stroke();
+    g.restore();
+  }
+  g.beginPath(); g.arc(0, 0, R * .78, 0, TAU); g.stroke();
+  g.restore();
+}
+
+/* ---------- the seven styles ---------- */
+const STYLES = [
+  { id: "royal", name: "Royal Reveal", desc: "Blur-to-sharp reveal in a gold frame, light sweep, title fades up.", dur: 7,
+    draw(g, t) {
+      const { W, H, img } = S; bgMaroon(g, t); dust(g, t, .7);
+      const p = seg(t, 0, 2.2), sc = lerp(1.25, 1, easeOut(p)) * lerp(1, 1.06, seg(t, 2.2, 7));
+      g.globalAlpha = easeOut(seg(t, 0, .8));
+      const r = framedCard(g, img, W / 2, H * .43, W * .74, H * .56, sc, (1 - easeOut(p)) * 26);
+      g.globalAlpha = 1;
+      sweep(g, r, seg(t, 2.3, 3.6)); sweep(g, r, seg(t, 5, 6.2), .18, .4);
+      sparkleLayer(g, r, t, seg(t, 2.6, 3.4) * .9);
+      const ty = Math.min(r.y + r.h + H * .085, H * .86);
+      text(g, S.text.title.toUpperCase(), W / 2, ty + (1 - easeOut(seg(t, 3, 4))) * 40, { size: W * .072, alpha: seg(t, 3, 4), track: .06 });
+      text(g, S.text.tagline, W / 2, ty + W * .1, { size: W * .085, font: SCRIPT, fill: PAL.gold2, alpha: seg(t, 3.8, 4.8) });
+      vignette(g, .4);
+    } },
+  { id: "sparkle", name: "Sparkle Shine", desc: "Full-bleed slow push with glints on the brightest stones.", dur: 7,
+    draw(g, t) {
+      const { W, H, img } = S, p = t / 7;
+      let r;
+      if (S.cut) { bgMaroon(g, t); const f = fitRect(img, W * .9, H * .62), z = lerp(1.18, 1, ease(p)); r = { x: W / 2 - f.w * z / 2, y: H * .4 - f.h * z / 2, w: f.w * z, h: f.h * z }; floatPiece(g, img, r); }
+      else { r = coverRect(img, W, H, lerp(1.22, 1.04, ease(p)), lerp(.42, .58, p), lerp(.55, .45, p)); drawImg(g, img, r); }
+      vignette(g, .7);
+      sparkleLayer(g, r, t, 1, 1.3); dust(g, t, .9);
+      const gr = g.createLinearGradient(0, H * .62, 0, H); gr.addColorStop(0, "rgba(20,5,11,0)"); gr.addColorStop(1, "rgba(20,5,11,.9)");
+      g.fillStyle = gr; g.fillRect(0, H * .62, W, H * .38);
+      text(g, S.text.title.toUpperCase(), W / 2, H * .82, { size: W * .07, alpha: seg(t, 1.2, 2.2), track: .06 });
+      text(g, S.text.tagline, W / 2, H * .82 + W * .1, { size: W * .08, font: SCRIPT, fill: PAL.cream, alpha: seg(t, 2, 3) });
+    } },
+  { id: "spin", name: "Showcase Spin", desc: "Card turns on a spotlit stage with a floor reflection.", dur: 7,
+    draw(g, t) {
+      const { W, H, img } = S;
+      g.fillStyle = TH().c[2]; g.fillRect(0, 0, W, H);
+      const cy = H * .42;
+      g.save(); g.globalCompositeOperation = "lighter";
+      const spot = g.createRadialGradient(W / 2, cy, 0, W / 2, cy, W * .75); spot.addColorStop(0, "rgba(140,40,70,.55)"); spot.addColorStop(1, "rgba(0,0,0,0)");
+      g.fillStyle = spot; g.fillRect(0, 0, W, H);
+      g.translate(W / 2, cy); g.rotate(t * .12);
+      for (let i = 0; i < 18; i++) { g.rotate(TAU / 18); g.fillStyle = "rgba(227,169,35,.035)"; g.beginPath(); g.moveTo(0, 0); g.lineTo(-W * .05, -H); g.lineTo(W * .05, -H); g.fill(); }
+      g.restore();
+      const turn = easeOut(seg(t, 0, 4.2)), ang = (1 - turn) * TAU * 1.5, cs = Math.cos(ang);
+      const f = fitRect(img, W * .66, H * .45), w = f.w, h = f.h, bob = Math.sin(t * 1.6) * H * .006;
+      const draw = (mirror) => {
+        g.save(); g.translate(W / 2, cy + bob + (mirror ? h + H * .01 : 0)); g.scale(cs, mirror ? -1 : 1);
+        if (mirror) g.translate(0, -h / 2); else g.translate(0, -h / 2);
+        if (cs >= 0) g.drawImage(img, -w / 2, 0, w, h);
+        else { g.fillStyle = "#3a0f1f"; g.fillRect(-w / 2, 0, w, h); if (S.logo) { const lf = fitRect(S.logo, w * .9, h * .9); g.drawImage(S.logo, -lf.w / 2, (h - lf.h) / 2, lf.w, lf.h); } }
+        if (!S.cut || cs < 0) { g.strokeStyle = goldGrad(g, 0, h); g.lineWidth = W * .006; g.strokeRect(-w / 2, 0, w, h); }
+        g.restore();
+      };
+      draw(false);
+      g.save(); g.beginPath(); g.rect(0, cy + h / 2 + bob, W, h * .55); g.clip(); g.globalAlpha = .28; draw(true); g.restore();
+      const fade = g.createLinearGradient(0, cy + h / 2, 0, cy + h); fade.addColorStop(0, "rgba(14,4,8,0)"); fade.addColorStop(.6, "rgba(14,4,8,1)");
+      g.fillStyle = fade; g.fillRect(0, cy + h / 2 + bob, W, h * .6);
+      const r = { x: W / 2 - w / 2, y: cy - h / 2 + bob, w, h };
+      if (turn > .98) { sweep(g, r, seg(t, 4.3, 5.4), .2, .45); sparkleLayer(g, r, t, seg(t, 4.2, 5), 1.2); }
+      text(g, S.text.title.toUpperCase(), W / 2, H * .8, { size: W * .068, alpha: seg(t, 4.2, 5.1), track: .08 });
+      text(g, S.text.tagline, W / 2, H * .8 + W * .1, { size: W * .08, font: SCRIPT, fill: PAL.gold2, alpha: seg(t, 4.8, 5.8) });
+    } },
+  { id: "promo", name: "Price Drop", desc: "Bold promo: piece slides in, offer badge pops, price and DM call.", dur: 7,
+    draw(g, t) {
+      const { W, H, img } = S;
+      g.fillStyle = TH().c[1]; g.fillRect(0, 0, W, H);
+      const bandY = H * .64;
+      g.fillStyle = goldGrad(g, bandY, H); g.fillRect(0, bandY + (1 - easeOut(seg(t, 0, .7))) * H * .4, W, H);
+      const slide = easeBack(seg(t, .3, 1.4)), cx = lerp(W * 1.6, W / 2, slide);
+      const f = fitRect(img, W * .8, H * .5), r = { x: cx - f.w / 2, y: H * .36 - f.h / 2, w: f.w, h: f.h };
+      if (S.cut) floatPiece(g, img, r);
+      else { g.save(); g.shadowColor = "rgba(0,0,0,.55)"; g.shadowBlur = W * .05; g.shadowOffsetY = W * .02; g.fillStyle = "#000"; g.fillRect(r.x, r.y, r.w, r.h); g.restore(); drawImg(g, img, r); }
+      sweep(g, r, seg(t, 1.5, 2.5));
+      text(g, (S.text.brand || "").toUpperCase(), W / 2, H * .07, { size: W * .05, alpha: seg(t, .2, .8), track: .3, fill: PAL.gold2 });
+      // offer badge
+      if (S.text.offer) {
+        const bp = easeBack(seg(t, 1.6, 2.3)), bx = W * .78, by = r.y + W * .02, br = W * .15 * bp;
+        if (br > 1) {
+          g.save(); g.translate(bx, by); g.rotate(-.18 + Math.sin(t * 2) * .04);
+          g.fillStyle = "#b3122f"; g.beginPath();
+          for (let i = 0; i < 32; i++) { const a = i / 32 * TAU, rr = i % 2 ? br * .88 : br; g.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); }
+          g.closePath(); g.fill(); g.strokeStyle = PAL.gold2; g.lineWidth = W * .004; g.stroke();
+          const words = S.text.offer.split(/\s+/), lines = []; let cur = "";
+          for (const w2 of words) { if ((cur + " " + w2).trim().length > 9 && cur) { lines.push(cur); cur = w2; } else cur = (cur + " " + w2).trim(); }
+          lines.push(cur);
+          lines.slice(0, 3).forEach((ln, i, a) => text(g, ln.toUpperCase(), 0, (i - (a.length - 1) / 2) * br * .36, { size: br * .3, font: UI, fill: "#fff", maxW: br * 1.5, shadow: false }));
+          g.restore();
+        }
+      }
+      const tp = seg(t, 2.3, 3.1);
+      text(g, S.text.title.toUpperCase(), W / 2, bandY + H * .06, { size: W * .062, fill: PAL.maroon, alpha: tp, shadow: false, track: .04 });
+      if (S.text.price) {
+        const shown = S.text.price.slice(0, Math.round(S.text.price.length * seg(t, 3, 3.9)));
+        text(g, shown, W / 2, bandY + H * .15, { size: W * .14, font: "700 SZpx Manrope, system-ui, sans-serif", fill: "#2a0b16", shadow: false });
+      }
+      const ctaP = easeOut(seg(t, 4.2, 4.9));
+      if (ctaP > 0) {
+        const cw = W * .74, ch = H * .06, cx2 = W / 2 - cw / 2, cy2 = H * .9 - ch / 2 + (1 - ctaP) * H * .1;
+        g.save(); g.globalAlpha = ctaP; g.fillStyle = PAL.maroon; roundRect(g, cx2, cy2, cw, ch, ch / 2); g.fill(); g.restore();
+        text(g, `DM to order  ${S.text.handle}`, W / 2, cy2 + ch / 2, { size: ch * .38, font: UI, fill: PAL.gold2, alpha: ctaP, maxW: cw * .9, shadow: false });
+      }
+    } },
+  { id: "mandala", name: "Temple Frame", desc: "Round crop inside turning gold lotus rings from the Eskeml emblem.", dur: 7,
+    draw(g, t) {
+      const { W, H, img } = S; bgMaroon(g, t);
+      const cx = W / 2, cy = H * .42, R = Math.min(W * .34, H * .26), grow = easeOut(seg(t, 0, 1.5));
+      const glow = g.createRadialGradient(cx, cy, R * .5, cx, cy, R * 1.9);
+      glow.addColorStop(0, `rgba(255,190,90,${.25 + .1 * Math.sin(t * 2.5)})`); glow.addColorStop(1, "rgba(255,190,90,0)");
+      g.fillStyle = glow; g.fillRect(0, 0, W, H);
+      lotus(g, cx, cy, R * 1.32 * grow, 12, t * .25, grow, W * .005);
+      lotus(g, cx, cy, R * 1.12 * grow, 16, -t * .35 + .2, grow * .8, W * .003);
+      g.save(); g.translate(cx, cy); g.rotate(t * .5);
+      for (let i = 0; i < 36; i++) { const a = i / 36 * TAU; g.fillStyle = PAL.gold2; g.globalAlpha = grow * (.4 + .6 * (i % 2)); g.beginPath(); g.arc(Math.cos(a) * R * 1.47 * grow, Math.sin(a) * R * 1.47 * grow, W * .005, 0, TAU); g.fill(); }
+      g.restore(); g.globalAlpha = 1;
+      g.save(); g.beginPath(); g.arc(cx, cy, R * .98 * grow, 0, TAU); g.clip();
+      const sc = lerp(1.35, 1.0, ease(seg(t, 0, 7)));
+      if (S.cut) { const disc = g.createRadialGradient(cx, cy - R * .2, 0, cx, cy, R); disc.addColorStop(0, "#fff6e4"); disc.addColorStop(1, "#d9b98f"); g.fillStyle = disc; g.fillRect(cx - R, cy - R, 2 * R, 2 * R); }
+      const s0 = (S.cut ? Math.min(1.5 * R / img.width, 1.5 * R / img.height) : Math.max(2 * R / img.width, 2 * R / img.height)) * sc, r = { x: cx - img.width * s0 / 2, y: cy - img.height * s0 / 2, w: img.width * s0, h: img.height * s0 };
+      drawImg(g, img, r); sweep(g, { x: cx - R, y: cy - R, w: 2 * R, h: 2 * R }, seg(t, 2, 3.2), .22, .55, null);
+      g.restore();
+      g.strokeStyle = goldGrad(g, cy - R, cy + R); g.lineWidth = W * .01; g.beginPath(); g.arc(cx, cy, R * grow, 0, TAU); g.stroke();
+      sparkleLayer(g, r, t, seg(t, 1.6, 2.4) * .8);
+      text(g, S.text.title.toUpperCase(), W / 2, cy + R * 1.75, { size: W * .068, alpha: seg(t, 2.2, 3.2), track: .06 });
+      text(g, S.text.tagline, W / 2, cy + R * 1.75 + W * .1, { size: W * .085, font: SCRIPT, fill: PAL.gold2, alpha: seg(t, 3, 4) });
+    } },
+  { id: "cuts", name: "Detail Cuts", desc: "Quick macro cuts to the sparkling details, one word per cut.", dur: 6.4,
+    draw(g, t) {
+      const { W, H, img } = S, n = 6, d = 6.4 / n, i = Math.min(n - 1, Math.floor(t / d)), lt = (t - i * d) / d;
+      const words = (S.text.title || "").split(/\s+/).filter(Boolean);
+      const spots = S.sparks.slice(0, 4);
+      if (S.cut) bgMaroon(g, t); else { g.fillStyle = "#000"; g.fillRect(0, 0, W, H); }
+      let r;
+      if (i === 0 || i === n - 1) { if (S.cut) { const f = fitRect(img, W * .88, H * .6), z = lerp(1.1, 1, lt); r = { x: W / 2 - f.w * z / 2, y: H * .42 - f.h * z / 2, w: f.w * z, h: f.h * z }; } else r = coverRect(img, W, H, lerp(1.12, 1, lt)); }
+      else {
+        const sp = spots[(i - 1) % spots.length], z = 2.1 + (i % 2) * .5;
+        const base = coverRect(img, W, H, z);
+        r = { x: clamp(W / 2 - sp.u * base.w, W - base.w, 0), y: clamp(H / 2 - sp.v * base.h, H - base.h, 0), w: base.w, h: base.h };
+        r.x += lerp(-1, 1, lt) * W * .03 * (i % 2 ? 1 : -1);
+      }
+      drawImg(g, img, r); vignette(g, .6); sparkleLayer(g, r, t * 1.4, 1, 1.5);
+      const flash = Math.max(0, 1 - lt * 6);
+      if (i > 0 && flash > 0) { g.fillStyle = `rgba(255,248,230,${flash * .85})`; g.fillRect(0, 0, W, H); }
+      if (i > 0 && i < n - 1) {
+        const w = words[(i - 1) % Math.max(1, words.length)] || "";
+        text(g, w.toUpperCase(), W / 2, H * .5, { size: W * .14, alpha: easeOut(seg(lt, .05, .3)) * (1 - seg(lt, .85, 1)), track: .1 });
+      }
+      if (i === n - 1) {
+        text(g, S.text.title.toUpperCase(), W / 2, H * .8, { size: W * .07, alpha: seg(lt, .1, .4), track: .06 });
+        text(g, S.text.tagline, W / 2, H * .8 + W * .1, { size: W * .08, font: SCRIPT, fill: PAL.cream, alpha: seg(lt, .3, .6) });
+      }
+    } },
+  { id: "festive", name: "Golden Shower", desc: "Festive gold-leaf rain and bokeh around a gently floating piece.", dur: 7,
+    draw(g, t) {
+      const { W, H, img } = S;
+      const bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, TH().top); bg.addColorStop(1, TH().bot); g.fillStyle = bg; g.fillRect(0, 0, W, H);
+      g.save(); g.globalCompositeOperation = "lighter";
+      for (const b of BOKEH) { const x = (b.x + Math.sin(t * .3 + b.p * 6) * .03) * W, y = (b.y + Math.cos(t * .25 + b.p * 5) * .03) * H, rr = W * (.04 + b.s * .09);
+        const gr = g.createRadialGradient(x, y, 0, x, y, rr); gr.addColorStop(0, "rgba(255,190,90,.22)"); gr.addColorStop(1, "rgba(255,190,90,0)"); g.fillStyle = gr; g.beginPath(); g.arc(x, y, rr, 0, TAU); g.fill(); }
+      g.restore();
+      const leaf = (front) => { for (let k = 0; k < RAIN.length; k++) { const q = RAIN[k]; if ((k % 3 === 0) !== front) continue;
+        const y = ((q.y + t * (.08 + q.v * .12)) % 1.1) - .05, x = q.x + Math.sin(t * 1.4 + q.p * 10) * .02, sz = W * (.008 + q.s * .014) * (front ? 1.5 : 1);
+        g.save(); g.translate(x * W, y * H); g.rotate(t * (1 + q.v * 3) + q.p * 10); g.scale(1, Math.cos(t * 3 + q.p * 8));
+        g.fillStyle = q.s > .6 ? "#ffe39a" : q.s > .3 ? "#e3a923" : "#b9780f"; g.fillRect(-sz, -sz * .6, sz * 2, sz * 1.2); g.restore(); } };
+      leaf(false);
+      const bob = Math.sin(t * 1.3) * H * .01, sc = easeBack(seg(t, .2, 1.3));
+      const r = framedCard(g, img, W / 2, H * .44 + bob, W * .72, H * .5, Math.max(.01, sc));
+      sweep(g, r, seg(t, 1.6, 2.7)); sparkleLayer(g, r, t, seg(t, 1.4, 2.2));
+      leaf(true);
+      text(g, "Festive Collection", W / 2, H * .1, { size: W * .1, font: SCRIPT, fill: PAL.gold2, alpha: seg(t, .5, 1.4) });
+      text(g, S.text.title.toUpperCase(), W / 2, Math.min(r.y + r.h + H * .08, H * .86), { size: W * .068, alpha: seg(t, 2, 3), track: .06 });
+      if (S.text.offer) text(g, S.text.offer, W / 2, Math.min(r.y + r.h + H * .08, H * .86) + W * .09, { size: W * .045, font: UI, fill: PAL.cream, alpha: seg(t, 2.8, 3.6) });
+    } },
+];
+/* ---------- logo videos: the emblem cut out of its card, on new backdrops with gold graphics ---------- */
+function logoRect(scale = 1, cy = .44, box = .82) {
+  const { W, H } = S, L = S.logoCut, f = fitRect(L, W * box, H * .5), w = f.w * scale, h = f.h * scale;
+  return { x: W / 2 - w / 2, y: H * cy - h / 2, w, h };
+}
+function drawLogo(g, r, a = 1, blur = 0) {
+  g.save(); g.globalAlpha = clamp(a); g.shadowColor = "rgba(0,0,0,.5)"; g.shadowBlur = S.W * .03;
+  if (blur > .5) g.filter = `blur(${blur}px)`; drawImg(g, S.logoCut, r); g.restore();
+}
+function handleLine(g, y, a) { text(g, S.text.handle, S.W / 2, y, { size: S.W * .045, font: UI, fill: PAL.gold2, alpha: a, shadow: false, track: .06 }); }
+const LOGO_STYLES = [
+  { id: "logoShine", logo: true, name: "Logo Shine", desc: "Emblem sharpens in, gold light sweeps across, glints sparkle.", dur: 6,
+    draw(g, t) {
+      bgMaroon(g, t); dust(g, t, .8);
+      const p = easeOut(seg(t, 0, 1.6)), r = logoRect(lerp(.85, 1, p) * lerp(1, 1.04, seg(t, 1.6, 6)));
+      drawLogo(g, r, p, (1 - p) * 22);
+      sweep(g, r, seg(t, 1.6, 2.8), .2, .7, S.logoCut); sweep(g, r, seg(t, 3.8, 5), .15, .5, S.logoCut);
+      sparkleLayer(g, r, t, seg(t, 2.2, 3) * .9, 1, S.logoSparks);
+      handleLine(g, r.y + r.h + S.H * .05, seg(t, 2.6, 3.4)); vignette(g, .45);
+    } },
+  { id: "logoBloom", logo: true, name: "Lotus Bloom", desc: "Gold lotus rings bloom and turn behind the emblem.", dur: 6,
+    draw(g, t) {
+      const { W, H } = S; bgMaroon(g, t);
+      const r = logoRect(1, .44, .7), cx = W / 2, cy = r.y + r.h / 2, R = Math.min(r.w * .45, r.h * .95), grow = easeBack(seg(t, 0, 1.8));
+      const glow = g.createRadialGradient(cx, cy, 0, cx, cy, R * 2); glow.addColorStop(0, `rgba(255,190,90,${.22 + .08 * Math.sin(t * 2.4)})`); glow.addColorStop(1, "rgba(255,190,90,0)");
+      g.fillStyle = glow; g.fillRect(0, 0, W, H);
+      lotus(g, cx, cy, R * 1.25 * grow, 16, t * .2, clamp(grow), W * .004);
+      lotus(g, cx, cy, R * 1.02 * grow, 12, -t * .3, clamp(grow) * .7, W * .003);
+      drawLogo(g, r, seg(t, .8, 1.8)); sweep(g, r, seg(t, 2.2, 3.4), .2, .6, S.logoCut);
+      sparkleLayer(g, r, t, seg(t, 2, 2.8) * .8, 1, S.logoSparks);
+      handleLine(g, Math.min(cy + R * 1.55, H * .9), seg(t, 2.6, 3.4));
+    } },
+  { id: "logoDust", logo: true, name: "Gold Dust", desc: "A swirl of gold dust gathers into the emblem with a flash.", dur: 6,
+    draw(g, t) {
+      const { W, H } = S; bgMaroon(g, t);
+      const r = logoRect(), gather = ease(seg(t, 0, 2.2));
+      g.save(); g.globalCompositeOperation = "lighter";
+      RAIN.forEach((q, i) => {
+        const tx = r.x + ((i * 37) % 100) / 100 * r.w, ty = r.y + ((i * 61) % 100) / 100 * r.h;
+        const a0 = q.p * TAU + t * (1 - gather) * 2, sx = W / 2 + Math.cos(a0) * W * (.4 + q.s * .5), sy = H * .44 + Math.sin(a0) * H * (.3 + q.v * .3);
+        const x = lerp(sx, tx, gather), y = lerp(sy, ty, gather), al = 1 - seg(t, 2, 2.6);
+        if (al > 0) { g.fillStyle = `rgba(255,214,120,${.8 * al})`; g.beginPath(); g.arc(x, y, W * (.004 + q.s * .006), 0, TAU); g.fill(); }
+      });
+      g.restore();
+      const flash = Math.max(0, 1 - Math.abs(t - 2.2) * 3);
+      drawLogo(g, r, seg(t, 2, 2.5));
+      if (flash > 0) { g.save(); g.globalCompositeOperation = "lighter"; const fl = g.createRadialGradient(W / 2, r.y + r.h / 2, 0, W / 2, r.y + r.h / 2, W * .8); fl.addColorStop(0, `rgba(255,240,200,${flash * .8})`); fl.addColorStop(1, "rgba(255,240,200,0)"); g.fillStyle = fl; g.fillRect(0, 0, W, H); g.restore(); }
+      sweep(g, r, seg(t, 3, 4.2), .2, .55, S.logoCut); sparkleLayer(g, r, t, seg(t, 2.4, 3.2), 1, S.logoSparks); dust(g, t, seg(t, 2.4, 3.4));
+      handleLine(g, r.y + r.h + H * .05, seg(t, 3, 3.8));
+    } },
+  { id: "logoFestive", logo: true, name: "Festive Logo", desc: "Gold-leaf rain and bokeh around a gently floating emblem.", dur: 6,
+    draw(g, t) {
+      const { W, H } = S, saved = S.img;
+      const bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, TH().top); bg.addColorStop(1, TH().bot); g.fillStyle = bg; g.fillRect(0, 0, W, H);
+      g.save(); g.globalCompositeOperation = "lighter";
+      for (const b of BOKEH) { const x = (b.x + Math.sin(t * .3 + b.p * 6) * .03) * W, y = (b.y + Math.cos(t * .25 + b.p * 5) * .03) * H, rr = W * (.04 + b.s * .09);
+        const gr = g.createRadialGradient(x, y, 0, x, y, rr); gr.addColorStop(0, "rgba(255,190,90,.22)"); gr.addColorStop(1, "rgba(255,190,90,0)"); g.fillStyle = gr; g.beginPath(); g.arc(x, y, rr, 0, TAU); g.fill(); }
+      g.restore();
+      const r = logoRect(easeBack(seg(t, .2, 1.3)) || .01, .44 + Math.sin(t * 1.3) * .006);
+      for (let k = 0; k < RAIN.length; k++) { const q = RAIN[k];
+        const y = ((q.y + t * (.08 + q.v * .12)) % 1.1) - .05, x = q.x + Math.sin(t * 1.4 + q.p * 10) * .02, sz = W * (.008 + q.s * .014);
+        g.save(); g.translate(x * W, y * H); g.rotate(t * (1 + q.v * 3) + q.p * 10); g.scale(1, Math.cos(t * 3 + q.p * 8));
+        g.fillStyle = q.s > .6 ? "#ffe39a" : q.s > .3 ? "#e3a923" : "#b9780f"; g.fillRect(-sz, -sz * .6, sz * 2, sz * 1.2); g.restore(); }
+      drawLogo(g, r); sweep(g, r, seg(t, 1.6, 2.7), .2, .6, S.logoCut); sparkleLayer(g, r, t, seg(t, 1.4, 2.2), 1, S.logoSparks);
+      text(g, "Festive Greetings", W / 2, H * .12, { size: W * .1, font: SCRIPT, fill: PAL.gold2, alpha: seg(t, .5, 1.4) });
+      handleLine(g, r.y + r.h + H * .05, seg(t, 2, 2.8));
+    } },
+];
+STYLES.push(...LOGO_STYLES);
+const PIECE_STYLES = STYLES.filter(s => !s.logo);
+const byId = id => STYLES.find(s => s.id === id);
+const total = st => st.dur + (st.logo ? 0 : END);
+
+function endCard(g, t, a) {
+  const { W, H } = S;
+  g.save(); g.globalAlpha = a;
+  bgMaroon(g, t);
+  if (S.logoCut) {
+    const r = logoRect(lerp(1.06, 1, easeOut(t / END)), .45, .8); drawLogo(g, r);
+    sweep(g, r, seg(t, .3, 1.6), .15, .5, S.logoCut);
+  } else if (S.logo) {
+    const f = fitRect(S.logo, W * .96, H * .7), sc = lerp(1.06, 1, easeOut(t / END));
+    const w = f.w * sc, h = f.h * sc; g.drawImage(S.logo, (W - w) / 2, (H - h) / 2 - H * .03, w, h);
+  } else text(g, S.text.brand, W / 2, H * .45, { size: W * .16, font: SCRIPT });
+  text(g, "DM to order  ·  " + S.text.handle, W / 2, H * .5 + Math.min(H * .38, W * .42), { size: W * .042, font: UI, fill: PAL.gold2, alpha: seg(t, .5, 1.1), shadow: false });
+  g.restore();
+}
+function renderFrame(g, st, t) {
+  const { W, H } = S;
+  g.save(); g.clearRect(0, 0, W, H);
+  if (!S.img) { g.fillStyle = "#000"; g.fillRect(0, 0, W, H); g.restore(); return; }
+  if (st.logo) { if (S.logoCut) st.draw(g, Math.min(t, st.dur - .001)); else { g.fillStyle = "#000"; g.fillRect(0, 0, W, H); } g.restore(); return; }
+  if (t < st.dur) { g.save(); st.draw(g, t); g.restore(); }
+  const e0 = st.dur - .5;
+  if (t > e0) { if (t >= st.dur) { g.save(); st.draw(g, st.dur - .001); g.restore(); } endCard(g, Math.max(0, t - st.dur), easeOut(seg(t, e0, st.dur))); }
+  g.restore();
+}
+
+/* ---------- preview ---------- */
+const cv = $("cv"), ctx = cv.getContext("2d");
+let playing = true, t0 = performance.now(), tNow = 0, rendering = false;
+function setAspect() {
+  const a = $("aspect").value; S.W = 1080; S.H = a === "9:16" ? 1920 : a === "4:5" ? 1350 : 1080;
+  cv.width = S.W; cv.height = S.H;
+  document.querySelectorAll(".style").forEach(el => { el.classList.toggle("sq", a === "1:1"); el.classList.toggle("p45", a === "4:5"); });
+  drawThumbs();
+}
+function loop() {
+  const st = byId(S.style);
+  if (!rendering) {
+    if (playing) tNow = ((performance.now() - t0) / 1000) % total(st);
+    renderFrame(ctx, st, tNow);
+    $("scrub").value = Math.round(tNow / total(st) * 1000);
+    $("time").textContent = `${tNow.toFixed(1)} / ${total(st).toFixed(1)}s`;
+  }
+  hoverTick();
+  requestAnimationFrame(loop);
+}
+$("playBtn").onclick = () => { playing = !playing; $("playBtn").textContent = playing ? "Pause" : "Play"; if (playing) t0 = performance.now() - tNow * 1000; };
+$("scrub").oninput = e => { playing = false; $("playBtn").textContent = "Play"; tNow = e.target.value / 1000 * total(byId(S.style)); };
+$("aspect").onchange = setAspect;
+$("theme").onchange = e => { S.theme = e.target.value; drawThumbs(); };
+fields.forEach(f => $("t_" + f).addEventListener("input", () => { readText(); drawThumbsSoon(); }));
+
+/* ---------- style rack ---------- */
+const thumbs = {};
+let hoverId = null, hoverT0 = 0;
+function buildRack() {
+  const list = $("styles"), llist = $("logoStyles"); list.innerHTML = ""; llist.innerHTML = "";
+  for (const st of STYLES) {
+    const el = document.createElement("div"); el.className = "style" + (st.id === S.style ? " on" : ""); el.tabIndex = 0; el.setAttribute("role", "button");
+    el.dataset.id = st.id;
+    const c = document.createElement("canvas"); c.width = 216; c.height = 384; thumbs[st.id] = c;
+    const m = document.createElement("div"); m.className = "meta";
+    const b = document.createElement("b"); b.textContent = st.name; const sm = document.createElement("small"); sm.textContent = st.desc;
+    m.append(b, sm); el.append(c, m);
+    const pick = () => { S.style = st.id; t0 = performance.now(); tNow = 0; playing = true; $("playBtn").textContent = "Pause"; $("styleBadge").textContent = st.name;
+      document.querySelectorAll(".style").forEach(x => x.classList.toggle("on", x.dataset.id === st.id)); };
+    el.onclick = pick; el.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } };
+    el.onmouseenter = () => { hoverId = st.id; hoverT0 = performance.now(); };
+    el.onmouseleave = () => { hoverId = null; drawThumb(st.id); };
+    (st.logo ? llist : list).append(el);
+  }
+  markPicks();
+}
+function drawThumb(id, t) {
+  const c = thumbs[id], st = byId(id); if (!c) return;
+  c.width = 216; c.height = Math.round(216 * S.H / S.W);
+  const g = c.getContext("2d"); g.setTransform(c.width / S.W, 0, 0, c.height / S.H, 0, 0);
+  renderFrame(g, st, t ?? Math.min(st.dur - .4, 4.6));
+}
+function drawThumbs() { STYLES.forEach(s => drawThumb(s.id)); }
+let thumbTimer; function drawThumbsSoon() { clearTimeout(thumbTimer); thumbTimer = setTimeout(drawThumbs, 250); }
+let lastHover = 0;
+function hoverTick() { if (!hoverId || rendering) return; const now = performance.now(); if (now - lastHover < 50) return; lastHover = now;
+  const st = byId(hoverId); drawThumb(hoverId, ((now - hoverT0) / 1000) % total(st)); }
+function markPicks() {
+  document.querySelectorAll(".style").forEach(el => { el.querySelector(".pick")?.remove();
+    const i = S.picks.indexOf(el.dataset.id); if (i >= 0) { const p = document.createElement("span"); p.className = "pick"; p.textContent = i === 0 ? "Claude's pick" : "Suggested"; el.append(p); } });
+}
+
+/* ---------- images in ---------- */
+function loadImageFile(file) {
+  return new Promise((res, rej) => { const url = URL.createObjectURL(file), im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error("That file isn't an image the browser can read.")); im.src = url; });
+}
+function normalize(im, max = 1600) {
+  const s = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement("canvas");
+  c.width = Math.round(im.width * s); c.height = Math.round(im.height * s); c.getContext("2d").drawImage(im, 0, 0, c.width, c.height); return c;
+}
+function setPhoto(c, name) {
+  S.orig = c; S.photoBlob = null; S.origAlpha = hasAlpha(c); $("photoName").textContent = name; $("thumb").src = c.toDataURL("image/jpeg", .7);
+  applyEdits(); t0 = performance.now();
+}
+
+/* ---------- photo edits: background removal + tone ---------- */
+function hasAlpha(c) {
+  const n = 64, t = document.createElement("canvas"); t.width = n; t.height = n;
+  const g = t.getContext("2d", { willReadFrequently: true }); g.drawImage(c, 0, 0, n, n);
+  const d = g.getImageData(0, 0, n, n).data; let k = 0; for (let i = 3; i < d.length; i += 4) if (d[i] < 240) k++;
+  return k > n * n * .02;
+}
+function plainBackdrop(c) {
+  // a fairly even border means a studio-style backdrop the cut-out handles well
+  const n = 64, t = document.createElement("canvas"); t.width = n; t.height = n;
+  const g = t.getContext("2d", { willReadFrequently: true }); g.drawImage(c, 0, 0, n, n);
+  const d = g.getImageData(0, 0, n, n).data, px = [];
+  for (let i = 0; i < n; i++) for (const [x, y] of [[i, 0], [i, n - 1], [0, i], [n - 1, i]]) { const a = (y * n + x) * 4; px.push([d[a], d[a + 1], d[a + 2]]); }
+  let sd = 0; for (let ch = 0; ch < 3; ch++) { const m = px.reduce((s2, p) => s2 + p[ch], 0) / px.length; sd += Math.sqrt(px.reduce((s2, p) => s2 + (p[ch] - m) ** 2, 0) / px.length); }
+  return sd / 3 < 24;
+}
+const E = { cut: false, tol: 22, feather: 2, holes: true, trim: true, bright: 0, contrast: 0, sat: 0, warm: 0 };
+const EDIT_DEFAULTS = { ...E };
+function tone(d) {
+  const b = 1 + E.bright / 100, c = 1 + E.contrast / 100, sa = 1 + E.sat / 100, w = E.warm * .9;
+  if (b === 1 && c === 1 && sa === 1 && !w) return;
+  for (let i = 0; i < d.length; i += 4) {
+    let r = d[i] * b, g = d[i + 1] * b, bl = d[i + 2] * b;
+    r = (r - 128) * c + 128; g = (g - 128) * c + 128; bl = (bl - 128) * c + 128;
+    const l = r * .299 + g * .587 + bl * .114;
+    r = l + (r - l) * sa; g = l + (g - l) * sa; bl = l + (bl - l) * sa;
+    d[i] = r + w; d[i + 1] = g + w * .25; d[i + 2] = bl - w;
+  }
+}
+function bgMask(d, w, h, tol) {
+  // flood from the border through pixels close to the backdrop colour they started from
+  const N = w * h, bg = new Uint8Array(N), seed = new Int32Array(N), q = new Int32Array(N);
+  const t2 = tol * tol * 3; let head = 0, tail = 0;
+  const near = (i, s) => { const a = i * 4, b = s * 4, dr = d[a] - d[b], dg = d[a + 1] - d[b + 1], db = d[a + 2] - d[b + 2]; return dr * dr + dg * dg + db * db < t2; };
+  const push = (i, s) => { if (!bg[i] && near(i, s)) { bg[i] = 1; seed[i] = s; q[tail++] = i; } };
+  for (let x = 0; x < w; x++) { push(x, x); push((h - 1) * w + x, (h - 1) * w + x); }
+  for (let y = 0; y < h; y++) { push(y * w, y * w); push(y * w + w - 1, y * w + w - 1); }
+  while (head < tail) {
+    const i = q[head++], s = seed[i], x = i % w;
+    if (x > 0) push(i - 1, s); if (x < w - 1) push(i + 1, s); if (i >= w) push(i - w, s); if (i < N - w) push(i + w, s);
+  }
+  if (E.holes && tail) {
+    // average backdrop colour, then clear enclosed areas that match it (the hole in a ring)
+    // build a small palette of the backdrop's colours, then clear enclosed areas that match one (the hole in a ring)
+    const buckets = new Map(), step = Math.max(1, tail / 20000 | 0);
+    for (let k = 0; k < tail; k += step) { const a = q[k] * 4, key = (d[a] >> 4) << 8 | (d[a + 1] >> 4) << 4 | (d[a + 2] >> 4);
+      const e = buckets.get(key) || [0, 0, 0, 0]; e[0] += d[a]; e[1] += d[a + 1]; e[2] += d[a + 2]; e[3]++; buckets.set(key, e); }
+    const pal = [...buckets.values()].sort((a, b) => b[3] - a[3]).slice(0, 24).filter(e => e[3] > 3).map(e => [e[0] / e[3], e[1] / e[3], e[2] / e[3]]);
+    const t3 = t2 * .4, cand = new Uint8Array(N);
+    for (let i = 0; i < N; i++) if (!bg[i]) { const a = i * 4;
+      for (const [r, g, b] of pal) { const dr = d[a] - r, dg = d[a + 1] - g, db = d[a + 2] - b; if (dr * dr + dg * dg + db * db < t3) { cand[i] = 1; break; } } }
+    // only clear sizeable enclosed patches, so highlights on metal and stones survive
+    const minArea = N * .004, comp = new Int32Array(N);
+    for (let i = 0; i < N; i++) if (cand[i] === 1) {
+      let h2 = 0, t4 = 0; comp[t4++] = i; cand[i] = 2;
+      while (h2 < t4) { const j = comp[h2++], x = j % w;
+        const nb = [x > 0 ? j - 1 : -1, x < w - 1 ? j + 1 : -1, j - w, j + w];
+        for (const k of nb) if (k >= 0 && k < N && cand[k] === 1) { cand[k] = 2; comp[t4++] = k; } }
+      if (t4 >= minArea) for (let k = 0; k < t4; k++) bg[comp[k]] = 1;
+    }
+  }
+  return bg;
+}
+function applyEdits() {
+  if (!S.orig) return;
+  const src = S.orig, w = src.width, h = src.height;
+  const c = document.createElement("canvas"); c.width = w; c.height = h;
+  const g = c.getContext("2d", { willReadFrequently: true }); g.drawImage(src, 0, 0);
+  const id = g.getImageData(0, 0, w, h), d = id.data;
+  let box = null;
+  if (S.origAlpha) {
+    // already a cut-out (a transparent PNG): keep its own edges
+    let x0 = w, y0 = h, x1 = -1, y1 = -1;
+    for (let i = 0, N = w * h; i < N; i++) if (d[i * 4 + 3] > 20) { const x = i % w, y = i / w | 0; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    tone(d); g.putImageData(id, 0, 0); if (x1 >= 0) box = { x0, y0, x1, y1 };
+  } else if (E.cut) {
+    const bg = bgMask(d, w, h, E.tol);
+    const m = document.createElement("canvas"); m.width = w; m.height = h;
+    const mg = m.getContext("2d"), md = mg.createImageData(w, h);
+    let x0 = w, y0 = h, x1 = -1, y1 = -1;
+    for (let i = 0, N = w * h; i < N; i++) if (!bg[i]) { md.data[i * 4 + 3] = 255; const x = i % w, y = i / w | 0; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    mg.putImageData(md, 0, 0);
+    if (x1 < 0) { setStatus("Strength is too high: the whole photo was treated as backdrop. Lower it a little."); }
+    else {
+      tone(d); g.putImageData(id, 0, 0);
+      g.globalCompositeOperation = "destination-in";
+      if (E.feather) g.filter = `blur(${E.feather}px)`;
+      g.drawImage(m, 0, 0); g.filter = "none"; g.globalCompositeOperation = "source-over";
+      box = { x0, y0, x1, y1 };
+    }
+  }
+  if (!box && !S.origAlpha) { tone(d); g.putImageData(id, 0, 0); }
+  let out = c;
+  if (box && (E.trim || S.origAlpha)) {
+    const bw = box.x1 - box.x0 + 1, bh = box.y1 - box.y0 + 1, pad = Math.round(Math.max(bw, bh) * .06);
+    const x = Math.max(0, box.x0 - pad), y = Math.max(0, box.y0 - pad), cw = Math.min(w, box.x1 + pad + 1) - x, ch = Math.min(h, box.y1 + pad + 1) - y;
+    out = document.createElement("canvas"); out.width = cw; out.height = ch; out.getContext("2d").drawImage(c, x, y, cw, ch, 0, 0, cw, ch);
+  }
+  S.img = out; S.cut = !!box; S.sparks = findSparks(out);
+  drawThumbsSoon();
+}
+function buildLogoCut() {
+  if (!S.logo) { S.logoCut = null; return; }
+  const src = normalize(S.logo, 1400), w = src.width, h = src.height, g = src.getContext("2d", { willReadFrequently: true });
+  const id = g.getImageData(0, 0, w, h), d = id.data;
+  let alpha = 0; for (let i = 3; i < d.length; i += 400) if (d[i] < 240) alpha++;
+  let x0 = w, y0 = h, x1 = -1, y1 = -1;
+  if (alpha < 20) {
+    const keep = E.holes; E.holes = true; const bg = bgMask(d, w, h, 30); E.holes = keep;
+    for (let i = 0; i < w * h; i++) if (bg[i]) d[i * 4 + 3] = 0;
+    g.putImageData(id, 0, 0);
+  }
+  for (let i = 0; i < w * h; i++) if (d[i * 4 + 3] > 20) { const x = i % w, y = i / w | 0; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  if (x1 < 0) { S.logoCut = null; return; }
+  const pad = 8, c = document.createElement("canvas"); c.width = x1 - x0 + 1 + pad * 2; c.height = y1 - y0 + 1 + pad * 2;
+  c.getContext("2d").drawImage(src, x0, y0, x1 - x0 + 1, y1 - y0 + 1, pad, pad, x1 - x0 + 1, y1 - y0 + 1);
+  S.logoCut = c; S.logoSparks = findSparks(c).slice(0, 8);
+}
+let editTimer, syncEdits = () => {};
+function bindEdits() {
+  const num = ["tol", "feather", "bright", "contrast", "sat", "warm"], chk = ["cut", "holes", "trim"];
+  const sync = syncEdits = () => { num.forEach(k => { $("e_" + k).value = E[k]; $("o_" + k).textContent = E[k]; }); chk.forEach(k => $("e_" + k).checked = E[k]); $("cutOpts").classList.toggle("hide", !E.cut); };
+  const run = () => { clearTimeout(editTimer); editTimer = setTimeout(applyEdits, 90); };
+  num.forEach(k => $("e_" + k).addEventListener("input", e => { E[k] = +e.target.value; $("o_" + k).textContent = E[k]; run(); }));
+  chk.forEach(k => $("e_" + k).addEventListener("change", e => { E[k] = e.target.checked; sync(); run(); }));
+  $("e_reset").onclick = () => { Object.assign(E, EDIT_DEFAULTS); sync(); run(); };
+  $("e_gold").onclick = () => { Object.assign(E, { bright: 6, contrast: 14, sat: 18, warm: 14 }); sync(); run(); };
+  sync();
+}
+async function takePhoto(file) {
+  if (!file || !file.type.startsWith("image/")) return setStatus("Choose an image file (JPG, PNG or WebP).");
+  let c;
+  try { c = normalize(await loadImageFile(file)); } catch (e) { return setStatus(e.message); }
+  S.picks = []; markPicks();
+  if (!$("auto").checked) { setPhoto(c, file.name); return setStatus("Photo loaded. Try “Remove background” and “Write it with Claude” next."); }
+  if (rendering) return setStatus("A render is running. Add the photo again when it finishes.");
+  const alpha = hasAlpha(c);
+  S.base = null; $("aiRestore").disabled = true;
+  Object.assign(E, EDIT_DEFAULTS, { cut: !alpha && !AI.photoroom && plainBackdrop(c), bright: 6, contrast: 14, sat: 18, warm: 14 });
+  syncEdits(); clearTimeout(editTimer); setPhoto(c, file.name);
+  let cut = alpha;
+  if (!alpha && AI.photoroom) cut = await aiCutout();
+  const note = alpha ? "Cut-out PNG detected. " : cut ? "Background removed. " : E.cut ? "Backdrop removed. " : "Busy backdrop, so I kept it and framed the photo. ";
+  setStatus(note);
+  if (AI.claude) { setStatus(note + "Claude is writing the words…"); await runAI(); }
+  if (AI.runway && $("autoClip").checked) aiClip();
+  const list = [...(S.picks.length ? S.picks : ["royal", "sparkle", "mandala"]), "logoShine"].map(byId);
+  runRender(list);
+}
+function wireDrop(zone, input, onFile) {
+  zone.onclick = () => input.click(); zone.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } };
+  input.onchange = () => { onFile(input.files[0]); input.value = ""; };
+  zone.ondragover = e => { e.preventDefault(); zone.classList.add("over"); }; zone.ondragleave = () => zone.classList.remove("over");
+  zone.ondrop = e => { e.preventDefault(); zone.classList.remove("over"); onFile(e.dataTransfer.files[0]); };
+}
+wireDrop($("drop"), $("file"), takePhoto);
+wireDrop($("logoDrop"), $("logoFile"), async f => { if (!f) return; try { S.logo = normalize(await loadImageFile(f), 1200); $("logoThumb").src = S.logo.toDataURL("image/jpeg", .7); buildLogoCut(); drawThumbs(); } catch (e) { setStatus(e.message); } });
+document.addEventListener("paste", e => { const it = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith("image/")); if (it) takePhoto(it.getAsFile()); });
+
+/* ---------- Claude as director ---------- */
+const AI = { photoroom: false, runway: false, claude: false };
+const setStatus = s => $("status").textContent = s;
+async function photoBlob() {
+  if (S.photoBlob) return S.photoBlob;
+  const c = normalize(S.orig, 1200); S.photoBlob = await new Promise(r => c.toBlob(r, "image/jpeg", .88)); return S.photoBlob;
+}
+$("aiBtn").onclick = () => runAI();
+async function runAI() {
+  if (!AI.claude) return false;
+  const btn = $("aiBtn"); btn.disabled = true; $("aiText").textContent = "Claude is looking at the photo…";
+  try {
+    const out = await api("/api/write", { image: photoDataUrl(S.orig), brand: S.text.brand, handle: S.text.handle, styles: PIECE_STYLES.map(({ id, name, desc }) => ({ id, name, desc })) });
+    addIdeas("bdPrompt", out.backdrops); addIdeas("mvPrompt", out.motions);
+    if (out.title) $("t_title").value = String(out.title);
+    if (out.tagline) $("t_tagline").value = String(out.tagline);
+    if (typeof out.offer === "string") $("t_offer").value = out.offer;
+    readText();
+    S.picks = (Array.isArray(out.styles) ? out.styles : []).map(String).filter(byId).slice(0, 3);
+    markPicks();
+    if (S.picks[0]) document.querySelector(`.style[data-id="${S.picks[0]}"]`)?.click();
+    $("aiText").textContent = (out.piece ? `Looks like ${out.piece}. ` : "") + (out.why || "");
+    const tags = (Array.isArray(out.hashtags) ? out.hashtags : []).map(h => "#" + String(h).replace(/^#/, "")).join(" ");
+    $("caption").textContent = [out.caption || "", tags].filter(Boolean).join("\n\n");
+    $("captionWrap").classList.toggle("hide", !$("caption").textContent);
+    drawThumbs(); return true;
+  } catch (e) {
+    $("aiText").textContent = e.message || "Something went wrong reaching Claude. Press the button to try again.";
+    return false;
+  } finally { btn.disabled = false; }
+}
+$("copyCap").onclick = async () => {
+  try { await navigator.clipboard.writeText($("caption").textContent); $("copyCap").textContent = "Copied"; setTimeout(() => $("copyCap").textContent = "Copy caption", 1500); }
+  catch { const r = document.createRange(); r.selectNodeContents($("caption")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); $("copyCap").textContent = "Selected, press Ctrl+C"; }
+};
+
+/* ---------- AI services (via this app's own server routes) ---------- */
+function passcode() { try { return localStorage.getItem("studioPasscode") || ""; } catch { return ""; } }
+$("passcode").addEventListener("change", e => { try { localStorage.setItem("studioPasscode", e.target.value); } catch {} });
+async function api(path, body) {
+  const r = await fetch(path, { method: body ? "POST" : "GET", headers: { "Content-Type": "application/json", "x-studio-passcode": $("passcode").value || passcode() }, body: body ? JSON.stringify(body) : undefined });
+  const out = await r.json().catch(() => ({}));
+  if (!r.ok) { if (r.status === 401) $("passWrap").hidden = false; throw new Error(out.error || `The server answered ${r.status}.`); }
+  return out;
+}
+function photoDataUrl(c, max = 1400) {
+  const n = normalize(c, max);
+  return hasAlpha(n) ? n.toDataURL("image/png") : n.toDataURL("image/jpeg", .9);
+}
+function loadDataUrl(url) { return new Promise((res, rej) => { const im = new Image(); im.onload = () => res(normalize(im)); im.onerror = () => rej(new Error("The AI result couldn't be opened.")); im.src = url; }); }
+function addIdeas(id, ideas) {
+  const sel = $(id); if (!Array.isArray(ideas)) return;
+  sel.querySelectorAll("option[data-claude]").forEach(o => o.remove());
+  ideas.slice(0, 3).reverse().forEach(t => { const o = document.createElement("option"); o.dataset.claude = "1"; o.textContent = String(t).slice(0, 200); sel.prepend(o); });
+  sel.selectedIndex = 0;
+}
+function busy(btn, on, label) { btn.disabled = on; if (label) btn.textContent = label; }
+async function aiCutout() {
+  const btn = $("aiCut"); busy(btn, true, "Cutting out…"); setStatus("Photoroom is removing the background…");
+  try {
+    const out = await api("/api/photo", { image: photoDataUrl(S.base || S.orig, 1600), mode: "cutout" });
+    S.base = S.base || S.orig; const name = $("photoName").textContent.replace(/ \(AI.*\)$/, "");
+    Object.assign(E, { cut: false }); syncEdits(); setPhoto(await loadDataUrl(out.image), name + " (AI cut-out)"); S.base = S.base || null;
+    $("aiRestore").disabled = false; setStatus("Background removed by Photoroom."); return true;
+  } catch (e) { setStatus(e.message); return false; }
+  finally { busy(btn, !AI.photoroom, "AI cut-out"); }
+}
+async function aiBackdrop() {
+  const btn = $("aiBackdrop"), prompt = $("bdCustom").value.trim() || $("bdPrompt").value;
+  busy(btn, true, "Generating…"); setStatus(`Photoroom is placing the piece on “${prompt}”…`);
+  try {
+    const keep = S.base || S.orig;
+    const out = await api("/api/photo", { image: photoDataUrl(keep, 1600), mode: "backdrop", prompt });
+    const name = $("photoName").textContent.replace(/ \(AI.*\)$/, "");
+    Object.assign(E, { cut: false }); syncEdits(); setPhoto(await loadDataUrl(out.image), name + " (AI backdrop)"); S.base = keep;
+    $("aiRestore").disabled = false; setStatus("New backdrop ready. Every style now uses it.");
+  } catch (e) { setStatus(e.message); }
+  finally { busy(btn, !AI.photoroom, "Generate backdrop"); }
+}
+$("aiCut").onclick = aiCutout;
+$("aiBackdrop").onclick = aiBackdrop;
+$("aiRestore").onclick = () => { if (!S.base) return; const b = S.base; S.base = null; setPhoto(b, $("photoName").textContent.replace(/ \(AI.*\)$/, "")); $("aiRestore").disabled = true; };
+
+// The motion model needs a full picture, so cut-outs are placed on the chosen backdrop first.
+function clipStill() {
+  const a = $("aspect").value, w = 720, h = a === "9:16" ? 1280 : a === "4:5" ? 900 : 720;
+  if (!S.cut) return photoDataUrl(S.img, 1400);
+  const c = document.createElement("canvas"); c.width = w; c.height = h; const g = c.getContext("2d");
+  const keep = [S.W, S.H]; S.W = w; S.H = h; bgMaroon(g, 0);
+  const f = fitRect(S.img, w * .82, h * .62); floatPiece(g, S.img, { x: (w - f.w) / 2, y: (h - f.h) / 2, w: f.w, h: f.h });
+  [S.W, S.H] = keep; return c.toDataURL("image/jpeg", .92);
+}
+async function aiClip() {
+  const btn = $("aiVideo"), prompt = $("mvCustom").value.trim() || $("mvPrompt").value, aspect = $("aspect").value;
+  busy(btn, true, "Starting…");
+  const row = clipRow(prompt);
+  try {
+    const { id } = await api("/api/video", { image: clipStill(), prompt, aspect, duration: +$("mvDur").value });
+    busy(btn, !AI.runway, "Generate clip");
+    for (let i = 0; i < 120; i++) {
+      await new Promise(r => setTimeout(r, 5000));
+      const t = await api("/api/video?id=" + encodeURIComponent(id));
+      if (t.status === "SUCCEEDED" && t.url) return row.done(t.url);
+      if (t.status === "FAILED" || t.status === "CANCELLED") throw new Error(t.failure || "Runway couldn't make this clip. Try a different motion idea.");
+      row.progress(t.status === "RUNNING" && t.progress != null ? `Generating ${Math.round(t.progress * 100)}%` : t.status === "RUNNING" ? "Generating…" : "Waiting in Runway's queue…");
+    }
+    throw new Error("Runway is taking unusually long. Try again later.");
+  } catch (e) { row.fail(e.message); }
+  finally { busy(btn, !AI.runway, "Generate clip"); }
+}
+$("aiVideo").onclick = aiClip;
+function clipRow(prompt) {
+  $("noResults")?.remove();
+  const row = document.createElement("div"); row.className = "result";
+  const v = document.createElement("video"); v.muted = true; v.loop = true; v.playsInline = true; v.autoplay = true;
+  const info = document.createElement("div"), b = document.createElement("b"), sm = document.createElement("small");
+  b.textContent = "AI motion clip"; sm.textContent = "Starting…"; info.append(b, sm); row.append(v, info); $("results").prepend(row);
+  return {
+    progress: t => sm.textContent = t,
+    done: url => { v.src = url; sm.textContent = prompt.slice(0, 60) + (prompt.length > 60 ? "…" : "");
+      const a = document.createElement("a"); a.href = url; a.target = "_blank"; a.rel = "noopener"; a.download = `${slug(S.text.brand)}-${slug(S.text.title)}-ai-clip.mp4`; a.textContent = "Download";
+      a.className = "dl"; row.append(a); setStatus("Your AI motion clip is ready below. Runway keeps the link for a limited time, so download it."); },
+    fail: msg => { sm.textContent = msg; setStatus(msg); },
+  };
+}
+
+/* ---------- music ---------- */
+function music(ac, dest, kind, dur) {
+  if (kind === "none") return;
+  const master = ac.createGain(); master.gain.value = 0; master.connect(dest);
+  const now = ac.currentTime + .05;
+  master.gain.setValueAtTime(0, now); master.gain.linearRampToValueAtTime(.8, now + 1); master.gain.setValueAtTime(.8, now + dur - 1.2); master.gain.linearRampToValueAtTime(0, now + dur);
+  const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 1400; lp.connect(master);
+  // drone: Sa and Pa, like a tanpura
+  for (const [f, v] of [[110, .12], [164.81, .08], [220, .07], [329.63, .03]]) {
+    const o = ac.createOscillator(); o.type = "sawtooth"; o.frequency.value = f; o.detune.value = (Math.random() - .5) * 8;
+    const gn = ac.createGain(); gn.gain.value = v * .5; o.connect(gn).connect(lp); o.start(now); o.stop(now + dur);
+  }
+  const scale = [440, 493.88, 554.37, 659.25, 739.99, 880, 987.77, 1108.73];
+  const bell = (time, f, v = .18) => {
+    for (const [m, a] of [[1, 1], [2.76, .35], [5.4, .12]]) {
+      const o = ac.createOscillator(); o.type = "sine"; o.frequency.value = f * m; const gn = ac.createGain();
+      gn.gain.setValueAtTime(0, time); gn.gain.linearRampToValueAtTime(v * a, time + .005); gn.gain.exponentialRampToValueAtTime(.0001, time + 1.6 / m + .3);
+      o.connect(gn).connect(master); o.start(time); o.stop(time + 2);
+    }
+  };
+  const r = rng(99);
+  if (kind === "chimes") { for (let x = .4; x < dur - 1; x += .55 + r() * .5) bell(now + x, scale[Math.floor(r() * scale.length)], .12 + r() * .08); }
+  else {
+    const beat = 60 / 112;
+    for (let x = 0, i = 0; x < dur - .8; x += beat / 2, i++) {
+      const tm = now + x;
+      if (i % 4 === 0 || i % 8 === 3) { const o = ac.createOscillator(), gn = ac.createGain(); o.frequency.setValueAtTime(140, tm); o.frequency.exponentialRampToValueAtTime(45, tm + .25);
+        gn.gain.setValueAtTime(.55, tm); gn.gain.exponentialRampToValueAtTime(.001, tm + .35); o.connect(gn).connect(master); o.start(tm); o.stop(tm + .4); }
+      if (i % 4 === 2) { const o = ac.createOscillator(), gn = ac.createGain(); o.type = "triangle"; o.frequency.setValueAtTime(420, tm); o.frequency.exponentialRampToValueAtTime(300, tm + .12);
+        gn.gain.setValueAtTime(.25, tm); gn.gain.exponentialRampToValueAtTime(.001, tm + .18); o.connect(gn).connect(master); o.start(tm); o.stop(tm + .2); }
+      if (i % 2 === 0) bell(tm, scale[(i / 2 * 3) % scale.length], .07);
+    }
+  }
+}
+
+/* ---------- render to video ---------- */
+function pickMime() {
+  const list = ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4;codecs=avc1,mp4a.40.2", "video/mp4", "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"];
+  return list.find(m => window.MediaRecorder && MediaRecorder.isTypeSupported(m)) || "";
+}
+async function renderStyle(st, label) {
+  const mime = pickMime();
+  if (!mime || !cv.captureStream) throw new Error("This browser can't record video. Try Chrome or Edge on a computer.");
+  const dur = total(st), stream = cv.captureStream(30);
+  let ac = null;
+  if ($("music").value !== "none") {
+    ac = new (window.AudioContext || window.webkitAudioContext)(); await ac.resume();
+    const dest = ac.createMediaStreamDestination(); music(ac, dest, $("music").value, dur + .1);
+    dest.stream.getAudioTracks().forEach(tr => stream.addTrack(tr));
+  }
+  const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 8_000_000 }), chunks = [];
+  rec.ondataavailable = e => e.data.size && chunks.push(e.data);
+  const done = new Promise(r => rec.onstop = r);
+  rendering = true; rec.start(250);
+  const start = performance.now();
+  await new Promise(res => {
+    const step = () => {
+      const t = (performance.now() - start) / 1000;
+      renderFrame(ctx, st, Math.min(t, dur));
+      $("bar").style.width = `${clamp(t / dur) * 100}%`;
+      setStatus(`${label}: recording ${Math.min(t, dur).toFixed(1)} of ${dur.toFixed(1)}s`);
+      if (t < dur + .15) requestAnimationFrame(step); else res();
+    };
+    requestAnimationFrame(step);
+  });
+  rec.stop(); await done; stream.getTracks().forEach(tr => tr.stop()); if (ac) ac.close();
+  rendering = false;
+  const ext = mime.includes("mp4") ? "mp4" : "webm";
+  return { blob: new Blob(chunks, { type: mime.split(";")[0] }), ext };
+}
+function slug(s) { return (s || "reel").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "reel"; }
+function addResult(st, { blob, ext }) {
+  $("noResults")?.remove();
+  const row = document.createElement("div"); row.className = "result";
+  const v = document.createElement("video"); v.src = URL.createObjectURL(blob); v.muted = true; v.loop = true; v.playsInline = true; v.autoplay = true; v.controls = false;
+  v.onmouseenter = () => v.play();
+  const info = document.createElement("div"); const b = document.createElement("b"); b.textContent = `${st.name} · ${$("aspect").value}`;
+  const sm = document.createElement("small"); sm.textContent = `${ext.toUpperCase()} · ${(blob.size / 1048576).toFixed(1)} MB`; info.append(b, sm);
+  const btn = document.createElement("button"); btn.textContent = "Save"; btn.className = "primary";
+  const name = `${slug(S.text.brand)}-${slug(S.text.title)}-${st.id}-${$("aspect").value.replace(":", "x")}.${ext}`;
+  btn.onclick = () => { const a = document.createElement("a"); a.href = v.src; a.download = name; document.body.append(a); a.click(); a.remove(); setStatus(`Saved ${name}`); };
+  row.append(v, info, btn); $("results").prepend(row);
+}
+async function runRender(list) {
+  $("renderBtn").disabled = $("renderAllBtn").disabled = true;
+  readText();
+  try {
+    for (let i = 0; i < list.length; i++) {
+      const st = list[i]; $("styleBadge").textContent = st.name;
+      const res = await renderStyle(st, list.length > 1 ? `${i + 1} of ${list.length} · ${st.name}` : st.name);
+      addResult(st, res);
+    }
+    const ext = pickMime().includes("mp4") ? "MP4" : "WebM";
+    setStatus(list.length > 1 ? `All ${list.length} reels are ready below.` : `Your reel is ready below as ${ext}.` + (ext === "WebM" ? " Instagram prefers MP4; Chrome or Edge record MP4 directly." : ""));
+  } catch (e) { rendering = false; setStatus(e.message || "Recording failed."); }
+  finally { $("renderBtn").disabled = $("renderAllBtn").disabled = false; $("bar").style.width = "0"; $("styleBadge").textContent = byId(S.style).name; t0 = performance.now(); }
+}
+$("renderBtn").onclick = () => runRender([byId(S.style)]);
+$("renderAllBtn").onclick = () => runRender(S.picks.length ? [...S.picks.map(byId), ...PIECE_STYLES.filter(s => !S.picks.includes(s.id))] : PIECE_STYLES);
+
+/* ---------- boot ---------- */
+async function boot() {
+  const logo = new Image(); logo.src = LOGO_SRC;
+  await Promise.all([logo.decode().catch(() => {}), document.fonts?.load ? Promise.all([document.fonts.load("700 40px Cinzel"), document.fonts.load("40px 'Alex Brush'"), document.fonts.load("700 40px Manrope")]).catch(() => {}) : 0]);
+  S.logo = logo.naturalWidth ? logo : null; if (S.logo) $("logoThumb").src = LOGO_SRC; buildLogoCut();
+  bindEdits(); setPhoto(makeSample(), "Sample ring (example)");
+  buildRack(); drawThumbs(); setAspect(); requestAnimationFrame(loop);
+  if (!pickMime()) setStatus("This browser can preview but not record. Use Chrome or Edge on a computer to render.");
+  $("passcode").value = passcode();
+  try { Object.assign(AI, await fetch("/api/health").then(r => r.json())); } catch {}
+  $("pillPR").classList.toggle("on", AI.photoroom); $("pillRW").classList.toggle("on", AI.runway); $("pillCL").classList.toggle("on", AI.claude);
+  $("aiCut").disabled = $("aiBackdrop").disabled = !AI.photoroom; $("aiVideo").disabled = !AI.runway; $("aiBtn").disabled = !AI.claude;
+  $("autoClipWrap").hidden = !AI.runway; $("passWrap").hidden = !AI.passcode;
+  const off = [!AI.photoroom && "Photoroom (PHOTOROOM_API_KEY)", !AI.runway && "Runway (RUNWAYML_API_SECRET)", !AI.claude && "Claude (ANTHROPIC_API_KEY)"].filter(Boolean);
+  $("aiNote").textContent = off.length ? `Not switched on yet: ${off.join(", ")}. Add the keys in your hosting settings to enable them.` : "All AI services are on.";
+  if (!AI.claude) $("aiText").textContent = "Add ANTHROPIC_API_KEY to let Claude write the words. Until then, type them below.";
+}
+boot();
+})();
+</script>
+</body>
+</html>
