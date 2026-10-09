@@ -81,6 +81,21 @@ button.primary:hover:not(:disabled){background:var(--gold2)}
 .result small{color:var(--muted)}
 .empty{color:var(--muted);font-size:13px}
 .hide{display:none!important}
+.modal{position:fixed;inset:0;z-index:50;background:#14060b;display:flex;flex-direction:column;gap:10px;padding:12px 16px}
+.edbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.edbar .grpx{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.edbar .grpx > span{font-size:12px;color:var(--muted);margin-right:2px}
+.edbar button{padding:7px 11px;font-size:13px}
+.edbar button.on{border-color:var(--gold);color:var(--gold2);background:var(--maroon)}
+.edbar input[type=range]{width:110px;accent-color:var(--gold)}
+.edbar select{width:auto;padding:6px 8px;font-size:13px}
+.edwrap{flex:1;min-height:0;overflow:auto;border:1px solid var(--line);border-radius:10px;display:grid;place-items:center;position:relative}
+#edCv{touch-action:none;cursor:none;display:block;max-width:none}
+.bg-checker{background:repeating-conic-gradient(#3a3a3a 0 25%,#262626 0 50%) 0 0/20px 20px}
+.bg-white{background:#fff}.bg-black{background:#000}.bg-maroon{background:#3a0f1f}.bg-gold{background:#e3a923}
+#edRing{position:fixed;pointer-events:none;border:1.5px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #000;z-index:51;display:none}
+.edfoot{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.edfoot small{color:var(--muted)}
 .edit{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:10px}
 .edit h3{margin:0;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold2);font-weight:700}
 .chk{display:flex;gap:8px;align-items:center;font-size:13px;cursor:pointer}
@@ -126,6 +141,7 @@ button.primary:hover:not(:disabled){background:var(--gold2)}
         <b>Clean cut-out <span class="pill on">Free AI</span><span class="pill" id="pillPR">Photoroom</span></b>
         <small class="note">Removes any background, even hands, velvet or busy shop counters. <b>Free AI</b> runs on this device at no cost (the first time it downloads its model, about 80 MB). <b>Pro</b> uses Photoroom credits.</small>
         <div class="btns"><button id="aiFree">AI cut-out (free)</button><button id="aiCut" disabled>Pro cut-out</button><button id="aiRestore" disabled>Back to original</button></div>
+        <button class="primary" id="openEd">Open photo editor: fix edges by hand</button>
       </div>
       <div class="grp">
         <b>New backdrop</b>
@@ -170,7 +186,8 @@ button.primary:hover:not(:disabled){background:var(--gold2)}
       <div class="sl"><span>Contrast</span><input type="range" id="e_contrast" min="-50" max="50" value="0"><output id="o_contrast">0</output></div>
       <div class="sl"><span>Colour</span><input type="range" id="e_sat" min="-50" max="60" value="0"><output id="o_sat">0</output></div>
       <div class="sl"><span>Warmth</span><input type="range" id="e_warm" min="-40" max="40" value="0"><output id="o_warm">0</output></div>
-      <div class="btns"><button id="e_gold">Gold glow preset</button><button id="e_reset">Reset edits</button></div>
+      <div class="sl"><span>Sharpen</span><input type="range" id="e_sharp" min="0" max="100" value="0"><output id="o_sharp">0</output></div>
+      <div class="btns"><button id="e_gold">Gold glow preset</button><button id="e_reset">Reset edits</button><button id="openEd2">Photo editor</button></div>
     </div>
 
     <div class="panel ai" id="aiBox">
@@ -229,6 +246,26 @@ button.primary:hover:not(:disabled){background:var(--gold2)}
     <div class="results" id="results"><p class="empty" id="noResults">Rendered videos appear here, ready to save.</p></div>
   </section>
 </div>
+
+<div class="modal hide" id="ed" role="dialog" aria-modal="true" aria-label="Photo editor">
+  <div class="edbar">
+    <div class="grpx"><span>Brush</span><button id="tErase" class="on">Erase</button><button id="tRestore">Restore</button>
+      <label class="note">Size <input type="range" id="edSize" min="4" max="250" value="40"></label>
+      <label class="note">Softness <input type="range" id="edSoft" min="0" max="100" value="35"></label></div>
+    <div class="grpx"><span>AI</span><button id="edFree">AI cut-out (free)</button><button id="edPro" disabled>Pro cut-out</button></div>
+    <div class="grpx"><span>Edges</span><button id="edSpecks">Remove specks</button><button id="edTight">Tighten</button><button id="edSmooth">Smooth</button></div>
+    <div class="grpx"><span>Photo</span><button id="edRot">Rotate</button><button id="edFlip">Flip</button><button id="edCrop">Crop to piece</button></div>
+    <div class="grpx"><button id="edUndo">Undo</button><button id="edRedo">Redo</button>
+      <button id="edZo" aria-label="Zoom out">−</button><button id="edFit">Fit</button><button id="edZi" aria-label="Zoom in">+</button>
+      <select id="edBg" aria-label="Check edges on"><option value="checker">Check on: grid</option><option value="white">Check on: white</option><option value="black">Check on: black</option><option value="maroon">Check on: maroon</option><option value="gold">Check on: gold</option></select></div>
+  </div>
+  <div class="edwrap bg-checker" id="edWrap"><canvas id="edCv"></canvas></div>
+  <div class="edfoot">
+    <small id="edHint">Erase paints away leftover background. Restore paints the original photo back where the piece got cut. Zoom in for fine edges; Ctrl+Z undoes.</small>
+    <div class="btns"><button id="edSave">Save PNG</button><button id="edCancel">Cancel</button><button class="primary" id="edApply">Use this photo</button></div>
+  </div>
+</div>
+<div id="edRing"></div>
 
 <script>
 (() => {
@@ -813,7 +850,7 @@ function plainBackdrop(c) {
   let sd = 0; for (let ch = 0; ch < 3; ch++) { const m = px.reduce((s2, p) => s2 + p[ch], 0) / px.length; sd += Math.sqrt(px.reduce((s2, p) => s2 + (p[ch] - m) ** 2, 0) / px.length); }
   return sd / 3 < 24;
 }
-const E = { cut: false, tol: 22, feather: 2, holes: true, trim: true, bright: 0, contrast: 0, sat: 0, warm: 0 };
+const E = { cut: false, tol: 22, feather: 2, holes: true, trim: true, bright: 0, contrast: 0, sat: 0, warm: 0, sharp: 0 };
 const EDIT_DEFAULTS = { ...E };
 function tone(d) {
   const b = 1 + E.bright / 100, c = 1 + E.contrast / 100, sa = 1 + E.sat / 100, w = E.warm * .9;
@@ -889,6 +926,7 @@ function applyEdits() {
     }
   }
   if (!box && !S.origAlpha) { tone(d); g.putImageData(id, 0, 0); }
+  if (E.sharp) sharpen(c, E.sharp / 40);
   let out = c;
   if (box && (E.trim || S.origAlpha)) {
     const bw = box.x1 - box.x0 + 1, bh = box.y1 - box.y0 + 1, pad = Math.round(Math.max(bw, bh) * .06);
@@ -897,6 +935,45 @@ function applyEdits() {
   }
   S.img = out; S.cut = !!box; S.sparks = findSparks(out);
   drawThumbsSoon();
+}
+// Unsharp mask: makes metal edges and stone facets crisper.
+function sharpen(c, k) {
+  const w = c.width, h = c.height, b = document.createElement("canvas"); b.width = w; b.height = h;
+  const bg2 = b.getContext("2d", { willReadFrequently: true }); bg2.filter = "blur(1.2px)"; bg2.drawImage(c, 0, 0);
+  const g = c.getContext("2d", { willReadFrequently: true }), id = g.getImageData(0, 0, w, h), d = id.data, bd = bg2.getImageData(0, 0, w, h).data;
+  for (let i = 0; i < d.length; i += 4) { d[i] += k * (d[i] - bd[i]); d[i + 1] += k * (d[i + 1] - bd[i + 1]); d[i + 2] += k * (d[i + 2] - bd[i + 2]); }
+  g.putImageData(id, 0, 0);
+}
+// Drops stray bits the AI left behind (glow, dust), keeping the piece and any sizeable parts of it.
+function cleanSpecks(c) {
+  const w = c.width, h = c.height, N = w * h, g = c.getContext("2d", { willReadFrequently: true }), id = g.getImageData(0, 0, w, h), d = id.data;
+  const lab = new Int32Array(N).fill(-1), q = new Int32Array(N), sizes = [];
+  for (let i = 0; i < N; i++) if (lab[i] < 0 && d[i * 4 + 3] > 40) {
+    const L = sizes.length; let hd = 0, tl = 0; q[tl++] = i; lab[i] = L;
+    while (hd < tl) { const j = q[hd++], x = j % w;
+      for (const k of [x > 0 ? j - 1 : -1, x < w - 1 ? j + 1 : -1, j - w, j + w]) if (k >= 0 && k < N && lab[k] < 0 && d[k * 4 + 3] > 40) { lab[k] = L; q[tl++] = k; } }
+    sizes.push(tl);
+  }
+  if (!sizes.length) return 0;
+  const keep = Math.max(Math.max(...sizes) * .03, N * .0004); let removed = 0;
+  for (let i = 0; i < N; i++) { const a = d[i * 4 + 3]; if (!a) continue; const L = lab[i];
+    if (L < 0 ? a < 25 : sizes[L] < keep) { d[i * 4 + 3] = 0; removed++; } }
+  g.putImageData(id, 0, 0); return removed;
+}
+function tightenEdge(c) {
+  const w = c.width, h = c.height, g = c.getContext("2d", { willReadFrequently: true }), id = g.getImageData(0, 0, w, h), d = id.data, a = new Uint8ClampedArray(w * h);
+  for (let i = 0; i < w * h; i++) a[i] = d[i * 4 + 3];
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = y * w + x; if (!a[i]) continue;
+    let m = a[i]; if (x > 0) m = Math.min(m, a[i - 1]); if (x < w - 1) m = Math.min(m, a[i + 1]); if (y > 0) m = Math.min(m, a[i - w]); if (y < h - 1) m = Math.min(m, a[i + w]);
+    d[i * 4 + 3] = m; }
+  g.putImageData(id, 0, 0);
+}
+function smoothEdge(c) {
+  const w = c.width, h = c.height, t = document.createElement("canvas"); t.width = w; t.height = h;
+  const tg = t.getContext("2d", { willReadFrequently: true }); tg.filter = "blur(1px)"; tg.drawImage(c, 0, 0);
+  const g = c.getContext("2d", { willReadFrequently: true }), id = g.getImageData(0, 0, w, h), d = id.data, td = tg.getImageData(0, 0, w, h).data;
+  for (let i = 3; i < d.length; i += 4) d[i] = td[i];
+  g.putImageData(id, 0, 0);
 }
 function buildLogoCut() {
   if (!S.logo) { S.logoCut = null; return; }
@@ -917,13 +994,13 @@ function buildLogoCut() {
 }
 let editTimer, syncEdits = () => {};
 function bindEdits() {
-  const num = ["tol", "feather", "bright", "contrast", "sat", "warm"], chk = ["cut", "holes", "trim"];
+  const num = ["tol", "feather", "bright", "contrast", "sat", "warm", "sharp"], chk = ["cut", "holes", "trim"];
   const sync = syncEdits = () => { num.forEach(k => { $("e_" + k).value = E[k]; $("o_" + k).textContent = E[k]; }); chk.forEach(k => $("e_" + k).checked = E[k]); $("cutOpts").classList.toggle("hide", !E.cut); };
   const run = () => { clearTimeout(editTimer); editTimer = setTimeout(applyEdits, 90); };
   num.forEach(k => $("e_" + k).addEventListener("input", e => { E[k] = +e.target.value; $("o_" + k).textContent = E[k]; run(); }));
   chk.forEach(k => $("e_" + k).addEventListener("change", e => { E[k] = e.target.checked; sync(); run(); }));
   $("e_reset").onclick = () => { Object.assign(E, EDIT_DEFAULTS); sync(); run(); };
-  $("e_gold").onclick = () => { Object.assign(E, { bright: 6, contrast: 14, sat: 18, warm: 14 }); sync(); run(); };
+  $("e_gold").onclick = () => { Object.assign(E, { bright: 6, contrast: 14, sat: 18, warm: 14, sharp: 30 }); sync(); run(); };
   sync();
 }
 async function takePhoto(file) {
@@ -935,7 +1012,7 @@ async function takePhoto(file) {
   if (rendering) return setStatus("A render is running. Add the photo again when it finishes.");
   const alpha = hasAlpha(c);
   S.base = null; $("aiRestore").disabled = true;
-  Object.assign(E, EDIT_DEFAULTS, { bright: 6, contrast: 14, sat: 18, warm: 14 });
+  Object.assign(E, EDIT_DEFAULTS, { bright: 6, contrast: 14, sat: 18, warm: 14, sharp: 30 });
   syncEdits(); clearTimeout(editTimer); setPhoto(c, file.name);
   let cut = alpha;
   // Free on-device AI first; Photoroom only if that fails; the simple backdrop remover as a last resort.
@@ -1020,7 +1097,8 @@ async function aiCutout() {
   try {
     const out = await api("/api/photo", { image: photoDataUrl(S.base || S.orig, 1600), mode: "cutout" });
     S.base = S.base || S.orig; const name = $("photoName").textContent.replace(/ \(AI.*\)$/, "");
-    Object.assign(E, { cut: false }); syncEdits(); setPhoto(await loadDataUrl(out.image), name + " (AI cut-out)"); S.base = S.base || null;
+    const cutImg = await loadDataUrl(out.image); cleanSpecks(cutImg);
+    Object.assign(E, { cut: false }); syncEdits(); setPhoto(cutImg, name + " (AI cut-out)"); S.base = S.base || null;
     $("aiRestore").disabled = false; setStatus("Background removed by Photoroom."); return true;
   } catch (e) { setStatus(e.message); return false; }
   finally { busy(btn, !AI.photoroom, "Pro cut-out"); }
@@ -1051,6 +1129,7 @@ async function freeCutout() {
     });
     const url = URL.createObjectURL(blob), out = await loadDataUrl(url); URL.revokeObjectURL(url);
     if (!hasAlpha(out)) throw new Error("The free AI couldn't find the piece in this photo.");
+    cleanSpecks(out);
     S.base = S.base || S.orig; const name = $("photoName").textContent.replace(/ \(AI.*\)$/, "");
     Object.assign(E, { cut: false }); syncEdits(); setPhoto(out, name + " (AI cut-out)");
     $("aiRestore").disabled = false; setStatus("Background removed by the free AI."); return true;
@@ -1204,6 +1283,120 @@ async function runRender(list) {
 }
 $("renderBtn").onclick = () => runRender([byId(S.style)]);
 $("renderAllBtn").onclick = () => runRender(S.picks.length ? [...S.picks.map(byId), ...PIECE_STYLES.filter(s => !S.picks.includes(s.id))] : PIECE_STYLES);
+
+/* ---------- photo editor: erase / restore brush, edge tools ---------- */
+const ED = { work: null, src: null, tool: "erase", zoom: 1, fit: 1, undo: [], redo: [], painting: false, last: null };
+function bakedCutout() {
+  // the photo as the studio currently shows it, before tone edits: simple backdrop removal baked into transparency
+  const src = S.orig, c = document.createElement("canvas"); c.width = src.width; c.height = src.height;
+  const g = c.getContext("2d", { willReadFrequently: true }); g.drawImage(src, 0, 0);
+  if (!S.origAlpha && E.cut) { const id = g.getImageData(0, 0, c.width, c.height), bg = bgMask(id.data, c.width, c.height, E.tol);
+    for (let i = 0; i < bg.length; i++) if (bg[i]) id.data[i * 4 + 3] = 0; g.putImageData(id, 0, 0); }
+  return c;
+}
+function restoreSource(w, h) {
+  const base = S.base || ED.orig0, c = document.createElement("canvas"); c.width = w; c.height = h;
+  c.getContext("2d").drawImage(base, 0, 0, w, h); return c;
+}
+function edSnap() { ED.undo.push(ED.g.getImageData(0, 0, ED.work.width, ED.work.height)); if (ED.undo.length > 10) ED.undo.shift(); ED.redo = []; edButtons(); }
+function edButtons() { $("edUndo").disabled = !ED.undo.length; $("edRedo").disabled = !ED.redo.length; $("edPro").disabled = !AI.photoroom; }
+function edLoad(c, keepHistory) {
+  const w = c.width, h = c.height; ED.work = document.createElement("canvas"); ED.work.width = w; ED.work.height = h;
+  ED.g = ED.work.getContext("2d", { willReadFrequently: true }); ED.g.drawImage(c, 0, 0);
+  ED.src = restoreSource(w, h); if (!keepHistory) { ED.undo = []; ED.redo = []; }
+  const cv = $("edCv"); cv.width = w; cv.height = h; edFit(); edDraw(); edButtons();
+}
+function edDraw() { const g = $("edCv").getContext("2d"); g.clearRect(0, 0, ED.work.width, ED.work.height); g.drawImage(ED.work, 0, 0); }
+function edFit() { const r = $("edWrap").getBoundingClientRect(); ED.fit = Math.min((r.width - 24) / ED.work.width, (r.height - 24) / ED.work.height, 1.5); ED.zoom = 1; edZoom(); }
+function edZoom() { const cv = $("edCv"); cv.style.width = ED.work.width * ED.fit * ED.zoom + "px"; cv.style.height = ED.work.height * ED.fit * ED.zoom + "px"; }
+function openEditor() {
+  if (!S.orig) return;
+  ED.orig0 = S.base || S.orig; $("ed").classList.remove("hide"); document.body.style.overflow = "hidden";
+  edLoad(bakedCutout());
+  $("edHint").textContent = S.origAlpha || E.cut ? "Erase paints away leftover background. Restore paints the original photo back where the piece got cut. Zoom in for fine edges; Ctrl+Z undoes."
+    : "Start with “AI cut-out (free)”, then fix any edge with Erase and Restore.";
+}
+function closeEditor() { $("ed").classList.add("hide"); $("edRing").style.display = "none"; document.body.style.overflow = ""; }
+function edPoint(e) { const r = $("edCv").getBoundingClientRect(); return { x: (e.clientX - r.left) * ED.work.width / r.width, y: (e.clientY - r.top) * ED.work.height / r.height }; }
+function edDab(x, y) {
+  const r = +$("edSize").value / (ED.fit * ED.zoom) / 2, soft = +$("edSoft").value / 100, g = ED.g;
+  const grad = g.createRadialGradient(x, y, r * (1 - soft) * .999, x, y, r);
+  grad.addColorStop(0, "rgba(0,0,0,1)"); grad.addColorStop(1, "rgba(0,0,0,0)");
+  if (ED.tool === "erase") { g.globalCompositeOperation = "destination-out"; g.fillStyle = grad; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); g.globalCompositeOperation = "source-over"; }
+  else {
+    // paint the original photo back through a soft round brush
+    const s = Math.ceil(r * 2) + 2, t = ED.tmp && ED.tmp.width === s ? ED.tmp : (ED.tmp = Object.assign(document.createElement("canvas"), { width: s, height: s }));
+    const tg = t.getContext("2d"), ox = x - s / 2, oy = y - s / 2; tg.clearRect(0, 0, s, s); tg.globalCompositeOperation = "source-over";
+    tg.drawImage(ED.src, -ox, -oy); tg.globalCompositeOperation = "destination-in";
+    const g2 = tg.createRadialGradient(s / 2, s / 2, r * (1 - soft) * .999, s / 2, s / 2, r); g2.addColorStop(0, "#000"); g2.addColorStop(1, "rgba(0,0,0,0)");
+    tg.fillStyle = g2; tg.fillRect(0, 0, s, s); g.drawImage(t, ox, oy);
+  }
+}
+function edStroke(p) {
+  const a = ED.last || p, dist = Math.hypot(p.x - a.x, p.y - a.y), step = Math.max(1, +$("edSize").value / (ED.fit * ED.zoom) / 8), n = Math.max(1, Math.ceil(dist / step));
+  for (let i = 1; i <= n; i++) edDab(a.x + (p.x - a.x) * i / n, a.y + (p.y - a.y) * i / n);
+  ED.last = p; edDraw();
+}
+function edRing(e) { const ring = $("edRing"), d = +$("edSize").value; ring.style.display = "block"; ring.style.width = ring.style.height = d + "px"; ring.style.left = e.clientX - d / 2 + "px"; ring.style.top = e.clientY - d / 2 + "px"; }
+function edOp(fn) { edSnap(); fn(ED.work); edDraw(); }
+function edTransform(rot) {
+  edSnap(); const w = ED.work.width, h = ED.work.height, c = document.createElement("canvas"), s2 = document.createElement("canvas");
+  c.width = rot ? h : w; c.height = rot ? w : h; s2.width = c.width; s2.height = c.height;
+  for (const [from, to] of [[ED.work, c], [ED.src, s2]]) { const g = to.getContext("2d");
+    if (rot) { g.translate(h, 0); g.rotate(Math.PI / 2); } else { g.translate(w, 0); g.scale(-1, 1); } g.drawImage(from, 0, 0); }
+  const src = s2; edLoad(c, true); ED.src = src; ED.undo = []; ED.redo = []; edButtons();
+}
+function edCrop() {
+  const w = ED.work.width, h = ED.work.height, d = ED.g.getImageData(0, 0, w, h).data; let x0 = w, y0 = h, x1 = -1, y1 = -1;
+  for (let i = 0; i < w * h; i++) if (d[i * 4 + 3] > 20) { const x = i % w, y = i / w | 0; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  if (x1 < 0) return setStatus("Nothing left to crop to. Undo or Restore some of the piece first.");
+  const pad = Math.round(Math.max(x1 - x0, y1 - y0) * .05); x0 = Math.max(0, x0 - pad); y0 = Math.max(0, y0 - pad); x1 = Math.min(w - 1, x1 + pad); y1 = Math.min(h - 1, y1 + pad);
+  const cw = x1 - x0 + 1, ch = y1 - y0 + 1, c = document.createElement("canvas"), s2 = document.createElement("canvas"); c.width = s2.width = cw; c.height = s2.height = ch;
+  c.getContext("2d").drawImage(ED.work, -x0, -y0); s2.getContext("2d").drawImage(ED.src, -x0, -y0);
+  edLoad(c, true); ED.src = s2; ED.undo = []; ED.redo = []; edButtons();
+}
+async function edAI(fn) {
+  // the AI works on the full original photo, then the result comes back into the editor
+  if (!await fn()) return;
+  const res = S.orig;
+  if (res.width === ED.work.width && res.height === ED.work.height) { edSnap(); ED.g.clearRect(0, 0, res.width, res.height); ED.g.drawImage(res, 0, 0); edDraw(); }
+  else edLoad(res, false);
+}
+(() => {
+  const cv = $("edCv");
+  cv.addEventListener("pointerdown", e => { if (e.button > 0) return; cv.setPointerCapture(e.pointerId); edSnap(); ED.painting = true; ED.last = null; edStroke(edPoint(e)); });
+  cv.addEventListener("pointermove", e => { edRing(e); if (ED.painting) edStroke(edPoint(e)); });
+  const end = () => { ED.painting = false; ED.last = null; };
+  cv.addEventListener("pointerup", end); cv.addEventListener("pointercancel", end);
+  cv.addEventListener("pointerleave", () => { $("edRing").style.display = "none"; });
+  $("edWrap").addEventListener("wheel", e => { if (!e.ctrlKey && !e.metaKey) return; e.preventDefault(); ED.zoom = Math.min(12, Math.max(.25, ED.zoom * (e.deltaY < 0 ? 1.15 : 1 / 1.15))); edZoom(); }, { passive: false });
+  const tool = t => { ED.tool = t; $("tErase").classList.toggle("on", t === "erase"); $("tRestore").classList.toggle("on", t === "restore"); };
+  $("tErase").onclick = () => tool("erase"); $("tRestore").onclick = () => tool("restore");
+  $("edZi").onclick = () => { ED.zoom = Math.min(12, ED.zoom * 1.4); edZoom(); }; $("edZo").onclick = () => { ED.zoom = Math.max(.25, ED.zoom / 1.4); edZoom(); }; $("edFit").onclick = edFit;
+  $("edBg").onchange = e => { $("edWrap").className = "edwrap bg-" + e.target.value; };
+  $("edUndo").onclick = () => { if (!ED.undo.length) return; ED.redo.push(ED.g.getImageData(0, 0, ED.work.width, ED.work.height)); ED.g.putImageData(ED.undo.pop(), 0, 0); edDraw(); edButtons(); };
+  $("edRedo").onclick = () => { if (!ED.redo.length) return; ED.undo.push(ED.g.getImageData(0, 0, ED.work.width, ED.work.height)); ED.g.putImageData(ED.redo.pop(), 0, 0); edDraw(); edButtons(); };
+  $("edSpecks").onclick = () => edOp(c => { const n = cleanSpecks(c); setStatus(n ? "Removed stray specks." : "No stray specks found."); });
+  $("edTight").onclick = () => edOp(tightenEdge); $("edSmooth").onclick = () => edOp(smoothEdge);
+  $("edRot").onclick = () => edTransform(true); $("edFlip").onclick = () => edTransform(false); $("edCrop").onclick = edCrop;
+  $("edFree").onclick = () => edAI(freeCutout); $("edPro").onclick = () => edAI(aiCutout);
+  $("edSave").onclick = () => { ED.work.toBlob(b => { const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = ($("photoName").textContent.replace(/\.[a-z]+.*$/i, "") || "piece") + "-cutout.png"; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }, "image/png"); };
+  $("edCancel").onclick = closeEditor;
+  $("edApply").onclick = () => {
+    const out = document.createElement("canvas"); out.width = ED.work.width; out.height = ED.work.height; out.getContext("2d").drawImage(ED.work, 0, 0);
+    S.base = S.base || ED.orig0; const name = $("photoName").textContent.replace(/ \((AI|edited).*\)$/, "");
+    Object.assign(E, { cut: false }); syncEdits(); setPhoto(out, name + " (edited)"); $("aiRestore").disabled = false;
+    closeEditor(); setStatus("Edited photo is in. Every style now uses it.");
+  };
+  document.addEventListener("keydown", e => {
+    if ($("ed").classList.contains("hide")) return;
+    if (e.key === "Escape") closeEditor();
+    else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { e.preventDefault(); (e.shiftKey ? $("edRedo") : $("edUndo")).click(); }
+    else if (e.key === "[") $("edSize").value = +$("edSize").value - 6; else if (e.key === "]") $("edSize").value = +$("edSize").value + 6;
+  });
+  $("openEd").onclick = openEditor; $("openEd2").onclick = openEditor;
+  addEventListener("resize", () => { if (!$("ed").classList.contains("hide")) edFit(); });
+})();
 
 /* ---------- boot ---------- */
 async function boot() {
