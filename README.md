@@ -2,7 +2,7 @@
 
 Drop a jewellery photo and the studio does the rest:
 
-1. **Clean cut-out** with Photoroom, which works on any background (hands, velvet, shop counters).
+1. **Clean cut-out**, free by default: an open-source AI model runs right in the browser, so no key or credits are needed. Photoroom's **Pro cut-out** is there too if you add its key.
 2. **Claude** looks at the piece and writes its name, a tagline, an offer line, an Instagram caption with hashtags, and ideas for backdrops and camera motion. It also picks the 3 reel styles that suit the piece.
 3. **Branded reels** render in the browser. There are 7 piece styles and 4 logo videos, with music and the Eskeml end card, in 9:16, 4:5 or 1:1.
 4. **AI backdrop** (optional) uses Photoroom to place the piece on a newly generated scene, such as maroon velvet or marble with rose petals.
@@ -53,3 +53,4 @@ The API keys stay on the server. The browser never sees them.
 - **Use Chrome or Edge on a computer** for rendering. They record MP4, which Instagram accepts. Keep the tab in front while a reel renders, because it records in real time.
 - **Runway links expire**, so download each AI clip when it's ready.
 - **Photo size:** photos are shrunk to about 1600 px before upload, which keeps them under Vercel's request limit.
+- **Free cut-out:** the first use downloads the model (about 80 MB) from IMG.LY's CDN, and the browser keeps it for next time. It uses [@imgly/background-removal](https://github.com/imgly/background-removal-js) 1.4.5, bundled in `public/vendor/bg-removal.js`. That library is AGPL-3.0, so this app's source must stay public; the page links to this repo.

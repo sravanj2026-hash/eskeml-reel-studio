@@ -104,7 +104,7 @@ button.primary:hover:not(:disabled){background:var(--gold2)}
 <body>
 <header class="top">
   <h1><span>Eskeml</span>AI Reel Studio</h1>
-  <p>Drop in a jewellery photo, let Claude write the words, pick a look, and render a reel ready for Instagram.</p>
+  <p>Drop in a jewellery photo, let Claude write the words, pick a look, and render a reel ready for Instagram. <a href="https://github.com/sravanj2026-hash/eskeml-reel-studio" target="_blank" rel="noopener">Source code</a></p>
 </header>
 
 <div class="app">
@@ -123,9 +123,9 @@ button.primary:hover:not(:disabled){background:var(--gold2)}
       <p class="note" id="aiNote">Checking which AI services are switched on…</p>
       <label class="f" id="passWrap" hidden>Studio passcode<input type="password" id="passcode" autocomplete="current-password"></label>
       <div class="grp">
-        <b>Clean cut-out <span class="pill" id="pillPR">Photoroom</span></b>
-        <small class="note">Removes any background, even hands, velvet or busy shop counters.</small>
-        <div class="btns"><button id="aiCut" disabled>AI cut-out</button><button id="aiRestore" disabled>Back to original</button></div>
+        <b>Clean cut-out <span class="pill on">Free AI</span><span class="pill" id="pillPR">Photoroom</span></b>
+        <small class="note">Removes any background, even hands, velvet or busy shop counters. <b>Free AI</b> runs on this device at no cost (the first time it downloads its model, about 80 MB). <b>Pro</b> uses Photoroom credits.</small>
+        <div class="btns"><button id="aiFree">AI cut-out (free)</button><button id="aiCut" disabled>Pro cut-out</button><button id="aiRestore" disabled>Back to original</button></div>
       </div>
       <div class="grp">
         <b>New backdrop</b>
@@ -935,10 +935,12 @@ async function takePhoto(file) {
   if (rendering) return setStatus("A render is running. Add the photo again when it finishes.");
   const alpha = hasAlpha(c);
   S.base = null; $("aiRestore").disabled = true;
-  Object.assign(E, EDIT_DEFAULTS, { cut: !alpha && !AI.photoroom && plainBackdrop(c), bright: 6, contrast: 14, sat: 18, warm: 14 });
+  Object.assign(E, EDIT_DEFAULTS, { bright: 6, contrast: 14, sat: 18, warm: 14 });
   syncEdits(); clearTimeout(editTimer); setPhoto(c, file.name);
   let cut = alpha;
-  if (!alpha && AI.photoroom) cut = await aiCutout();
+  // Free on-device AI first; Photoroom only if that fails; the simple backdrop remover as a last resort.
+  if (!alpha) cut = await freeCutout() || (AI.photoroom && await aiCutout());
+  if (!alpha && !cut && plainBackdrop(c)) { E.cut = true; syncEdits(); applyEdits(); }
   const note = alpha ? "Cut-out PNG detected. " : cut ? "Background removed. " : E.cut ? "Backdrop removed. " : "Busy backdrop, so I kept it and framed the photo. ";
   setStatus(note);
   if (AI.claude) { setStatus(note + "Claude is writing the words…"); await runAI(); }
@@ -1021,7 +1023,7 @@ async function aiCutout() {
     Object.assign(E, { cut: false }); syncEdits(); setPhoto(await loadDataUrl(out.image), name + " (AI cut-out)"); S.base = S.base || null;
     $("aiRestore").disabled = false; setStatus("Background removed by Photoroom."); return true;
   } catch (e) { setStatus(e.message); return false; }
-  finally { busy(btn, !AI.photoroom, "AI cut-out"); }
+  finally { busy(btn, !AI.photoroom, "Pro cut-out"); }
 }
 async function aiBackdrop() {
   const btn = $("aiBackdrop"), prompt = $("bdCustom").value.trim() || $("bdPrompt").value;
@@ -1035,6 +1037,27 @@ async function aiBackdrop() {
   } catch (e) { setStatus(e.message); }
   finally { busy(btn, !AI.photoroom, "Generate backdrop"); }
 }
+// Free cut-out: an open-source model (IMG.LY background removal, AGPL) runs in the browser, so it costs nothing.
+let bgLib = null;
+async function freeCutout() {
+  const btn = $("aiFree"); busy(btn, true, "Cutting out…"); setStatus("Free AI is removing the background…");
+  try {
+    bgLib = bgLib || await import("./vendor/bg-removal.js");
+    const src = normalize(S.base || S.orig, 1600);
+    const png = await new Promise(r => src.toBlob(r, "image/png"));
+    const blob = await bgLib.removeBackground(png, {
+      model: "medium", output: { format: "image/png" },
+      progress: (key, cur, total) => { if (key.startsWith("fetch") && total) setStatus(`Free AI is getting ready (first time only): ${Math.round(cur / total * 100)}%`); else if (key.startsWith("compute")) setStatus("Free AI is removing the background…"); },
+    });
+    const url = URL.createObjectURL(blob), out = await loadDataUrl(url); URL.revokeObjectURL(url);
+    if (!hasAlpha(out)) throw new Error("The free AI couldn't find the piece in this photo.");
+    S.base = S.base || S.orig; const name = $("photoName").textContent.replace(/ \(AI.*\)$/, "");
+    Object.assign(E, { cut: false }); syncEdits(); setPhoto(out, name + " (AI cut-out)");
+    $("aiRestore").disabled = false; setStatus("Background removed by the free AI."); return true;
+  } catch (e) { setStatus("Free AI cut-out didn't work: " + (e.message || e) + " Try the Remove background box below."); return false; }
+  finally { busy(btn, false, "AI cut-out (free)"); }
+}
+$("aiFree").onclick = freeCutout;
 $("aiCut").onclick = aiCutout;
 $("aiBackdrop").onclick = aiBackdrop;
 $("aiRestore").onclick = () => { if (!S.base) return; const b = S.base; S.base = null; setPhoto(b, $("photoName").textContent.replace(/ \(AI.*\)$/, "")); $("aiRestore").disabled = true; };
