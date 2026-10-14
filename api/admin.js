@@ -28,7 +28,7 @@ const actions = {
       (select count(*) from bookings where status = 'booked' and starts_at::date = $1::date) as calls_today`, [today, addDays(today, 7)]);
     const byStage = await q("select stage, count(*)::int as n from orders where stage <> 'delivered' group by stage");
     return { today, rates, counts: Object.fromEntries(Object.entries(c).map(([k, v]) => [k, Number(v)])), by_stage: byStage, money, business: s.business.name,
-      connected: { whatsapp: Boolean(process.env.WHATSAPP_TOKEN), instagram: Boolean(process.env.INSTAGRAM_TOKEN), claude: Boolean(process.env.ANTHROPIC_API_KEY), storage: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY), public_url: Boolean(process.env.PUBLIC_URL) } };
+      connected: { whatsapp: Boolean(process.env.WHATSAPP_TOKEN), instagram: Boolean(process.env.INSTAGRAM_TOKEN), claude: process.env.SALES_ASSISTANT === "claude" && Boolean(process.env.ANTHROPIC_API_KEY), storage: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY), public_url: Boolean(process.env.PUBLIC_URL) } };
   },
 
   async "rates.set"({ rates }) { return { rates: await setRates(Array.isArray(rates) ? rates : []) }; },

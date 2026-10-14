@@ -77,7 +77,7 @@ The same app also runs the business side, built only on free tiers. It follows t
 - **Hosting:** Vercel Hobby. The app uses 10 serverless functions; the Hobby limit is 12.
 - **Database and file storage:** Supabase free tier (500 MB database, 1 GB storage).
 - **WhatsApp and Instagram:** replying within 24 hours of the customer's last message is free. Outside that window the app never sends a paid template. It puts the message on **Today → To send from your phone** with a one-tap link that opens the chat on your phone with the text ready.
-- **Sales assistant:** built-in rules, free. If you add `ANTHROPIC_API_KEY`, Claude writes the replies instead (pay per use), and the app falls back to the built-in assistant if Claude fails. Prices always come from the catalogue and today's rate, never from the AI.
+- **Sales assistant:** built-in rules, free. Claude writes the replies instead (pay per use) only if you set `SALES_ASSISTANT=claude` as well as `ANTHROPIC_API_KEY`. The key Reel Studio uses for captions doesn't switch it on by itself. If Claude fails, the app falls back to the built-in assistant. Prices always come from the catalogue and today's rate, never from the AI.
 - **Payments:** UPI to your own UPI ID. No Razorpay or gateway fees.
 - **Metal rate:** you type today's rate each morning on the Today screen. Until you do, the assistant won't quote prices.
 
