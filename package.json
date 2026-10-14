@@ -3,12 +3,20 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Drop a jewellery photo and get AI cut-outs, AI backdrops, AI motion clips and branded Instagram reels.",
+  "description": "Eskeml Reel Studio plus the Art of Eskeml business system: catalogue, WhatsApp/Instagram inbox, sales assistant, orders, UPI payments, GST invoices and an owner dashboard.",
   "scripts": {
-    "dev": "node dev-server.js"
+    "dev": "node dev-server.js",
+    "db:setup": "node scripts/db-setup.js",
+    "test": "node --test \"test/*.test.js\""
   },
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
-    "@anthropic-ai/sdk": "0.128.0"
+    "@anthropic-ai/sdk": "0.128.0",
+    "@vercel/functions": "3.9.9",
+    "pdf-lib": "1.17.1",
+    "pg": "8.23.0",
+    "qrcode": "1.5.4"
   }
 }
