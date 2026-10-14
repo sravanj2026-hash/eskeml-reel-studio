@@ -8,7 +8,7 @@ let q, one, closeDb, admin, whatsapp, instagram, cron, pay, enquiry, runDaily, c
 before(async () => {
   if (skip) return;
   Object.assign(process.env, { ADMIN_PASSCODE: "owner-pass", META_APP_SECRET: "app-secret", META_VERIFY_TOKEN: "verify-me", WHATSAPP_TOKEN: "wa-token", WHATSAPP_PHONE_ID: "PHONE1",
-    INSTAGRAM_TOKEN: "ig-token", INSTAGRAM_ACCOUNT_ID: "IGME", CRON_SECRET: "cron-secret", PUBLIC_URL: "https://shop.example" });
+    INSTAGRAM_TOKEN: "ig-token", INSTAGRAM_ACCOUNT_ID: "IGME", CRON_SECRET: "cron-secret", SITE_URL: "https://shop.example" });
   // Reel Studio's Claude key alone must not switch the paid sales assistant on.
   process.env.ANTHROPIC_API_KEY = "sk-test-not-used";
   delete process.env.SALES_ASSISTANT;

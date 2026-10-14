@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { pricePiece } from "../lib/pricing.js";
 import { readMessage } from "../lib/assistant.js";
+import { siteUrl } from "../lib/util.js";
 
 test("prices a 22K piece with percent making and GST", () => {
   const p = pricePiece({ net_weight_g: 10, making_type: "percent", making_value: 12, stone_cost: 2000 }, 7000, 3);
@@ -32,4 +33,11 @@ test("reads category, budget, occasion and intent from a customer message", () =
   assert.equal(readMessage("budget 1.5 lakh necklace").budget, 150000);
   assert.equal(readMessage("can we do a video call tomorrow").wantsCall, true);
   assert.equal(readMessage("I have 2 kids").budget, null);
+});
+
+test("payment links use Vercel's own address unless SITE_URL is set", () => {
+  assert.equal(siteUrl({ SITE_URL: "https://shop.example/" }), "https://shop.example");
+  assert.equal(siteUrl({ VERCEL_ENV: "production", VERCEL_PROJECT_PRODUCTION_URL: "eskeml.vercel.app", VERCEL_URL: "x-123.vercel.app" }), "https://eskeml.vercel.app");
+  assert.equal(siteUrl({ VERCEL_ENV: "preview", VERCEL_BRANCH_URL: "eskeml-git-branch.vercel.app", VERCEL_URL: "x-123.vercel.app" }), "https://eskeml-git-branch.vercel.app");
+  assert.equal(siteUrl({}), "");
 });
