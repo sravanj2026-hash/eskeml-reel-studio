@@ -3,11 +3,11 @@
     {
       "id": "dasara-bangles",
       "title": "Dasara Gold Bangles",
-      "format": "Instagram post + reel",
-      "idea": "Dasara post and short reel for our emerald and ruby gold bangles, neatly edited, maroon and gold.",
-      "image": "/designs/dasara-bangles-post.jpg",
-      "video": "/designs/dasara-bangles-reel.mp4",
-      "canva_url": "https://canva.link/dk9ztokgracleui",
+      "format": "Instagram carousel (4 pictures) + video",
+      "idea": "Dasara post and video for our emerald and ruby gold bangles: neatly edited, placed on trays and mats with different festive props in each picture, maroon and gold.",
+      "image": "/designs/dasara-bangles-1-brass-tray.jpg",
+      "video": "/designs/dasara-bangles-video.mp4",
+      "canva_url": "https://www.canva.com/d/g4Fvk2bYzgdVrCU",
       "made": "2026-10-16",
       "caption": "This Dasara, let your festive look shine. ✨\n\nOur handcrafted gold bangles with emeralds, rubies and sparkling white stones, made for Vijayadashami and every celebration after.\n\nWishing you and your family a very Happy Dasara! 🙏\n\nDM us or WhatsApp us to order.",
       "hashtags": [
@@ -23,10 +23,16 @@
         "TempleJewellery"
       ],
       "steps": [
-        "Tap Download picture and Download reel to save both to your phone.",
-        "Instagram post: pick the picture, paste the caption, and post around 7:30 PM.",
-        "Instagram reel: pick the reel, add a trending Dasara song from Instagram's music, paste the caption, and share.",
-        "Put the reel on your WhatsApp Status and Facebook too."
+        "Tap each small picture to save it, and tap Download video.",
+        "Instagram post: choose all 4 pictures together (carousel) in order 1 to 4, paste the caption, and post around 7:30 PM.",
+        "Instagram reel: pick the video, add a trending Dasara song from Instagram's music, paste the caption, and share.",
+        "Put the video on your WhatsApp Status and Facebook too."
+      ],
+      "images": [
+        "/designs/dasara-bangles-1-brass-tray.jpg",
+        "/designs/dasara-bangles-2-silk-mat.jpg",
+        "/designs/dasara-bangles-3-marble-tray.jpg",
+        "/designs/dasara-bangles-4-velvet-podium.jpg"
       ]
     },
     {

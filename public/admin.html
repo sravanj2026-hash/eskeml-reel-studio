@@ -308,13 +308,14 @@ const VIEWS = {
       d.video ? h("video", { src: d.video, poster: d.image || "", controls: true, playsinline: true, muted: true, loop: true, preload: "none", style: "width:100%;border-radius:6px;background:#000" })
         : d.image ? h("img", { src: d.image, alt: d.title, loading: "lazy", style: "aspect-ratio:auto" })
         : h("a", { href: d.canva_url, target: "_blank", rel: "noopener", class: "muted small", style: "aspect-ratio:4/5;display:grid;place-items:center;background:#000;border-radius:6px;text-align:center;padding:12px" }, "Preview not saved here yet. Tap to open it in Canva."),
+      d.images?.length > 1 ? h("div", { class: "row", style: "margin-top:8px;gap:6px;flex-wrap:nowrap;overflow-x:auto" }, ...d.images.map((src, i) => h("a", { href: src, download: `${d.id}-${i + 1}.jpg`, title: "Tap to save this picture" }, h("img", { src, alt: `${d.title} ${i + 1}`, loading: "lazy", style: "width:72px;aspect-ratio:3/4;object-fit:cover;border-radius:4px" })))) : null,
       h("div", { class: "top", style: "margin-top:8px" }, h("b", {}, d.title), h("span", { class: "pill" }, d.format)),
       h("p", { class: "small muted" }, `Idea: ${d.idea}`),
       d.caption ? h("div", { class: "said" }, d.caption + (d.hashtags?.length ? "\n\n" + d.hashtags.map(t => "#" + t).join(" ") : "")) : null,
       d.steps?.length ? h("details", {}, h("summary", { class: "small" }, "How to post it"), h("ol", { class: "small" }, ...d.steps.map(st => h("li", {}, st)))) : null,
       h("div", { class: "row", style: "margin-top:8px" },
         d.image ? h("a", { class: "btn primary", href: d.image, download: d.id + "." + d.image.split(".").pop() }, d.video ? "Download picture" : "Download") : null,
-        d.video ? h("a", { class: "btn primary", href: d.video, download: d.id + "-reel.mp4" }, "Download reel") : null,
+        d.video ? h("a", { class: "btn primary", href: d.video, download: d.id + "-reel.mp4" }, "Download video") : null,
         d.caption ? h("button", { onclick: () => copy(d.caption + (d.hashtags?.length ? "\n\n" + d.hashtags.map(t => "#" + t).join(" ") : ""), "Caption copied.") }, "Copy caption") : null,
         d.canva_url ? h("a", { class: "btn", href: d.canva_url, target: "_blank", rel: "noopener" }, "Edit in Canva") : null))))];
   },
