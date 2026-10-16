@@ -171,7 +171,7 @@ $("loginBtn").onclick = async () => {
 $("pass").addEventListener("keydown", e => e.key === "Enter" && $("loginBtn").click());
 $("logout").onclick = () => showLogin();
 
-const TABS = [["today", "Today"], ["approvals", "Approvals"], ["inbox", "Inbox"], ["orders", "Orders"], ["catalogue", "Catalogue"], ["money", "Money"], ["settings", "Settings"]];
+const TABS = [["today", "Today"], ["approvals", "Approvals"], ["inbox", "Inbox"], ["orders", "Orders"], ["catalogue", "Catalogue"], ["designs", "Designs"], ["money", "Money"], ["settings", "Settings"]];
 let COUNTS = {};
 function drawNav() {
   $("nav").replaceChildren(...TABS.map(([id, label]) => {
@@ -293,6 +293,28 @@ const VIEWS = {
         p.photos[0] ? h("img", { src: p.photos[0], alt: p.name, loading: "lazy" }) : h("div", { class: "muted small", style: "aspect-ratio:1;display:grid;place-items:center;background:#000;border-radius:6px" }, "No photo"),
         h("b", {}, p.name || p.sku), h("div", { class: "small muted" }, `${p.sku} · ${p.purity} ${p.metal} · ${p.net_weight_g ?? p.gross_weight_g ?? "?"} g`),
         h("div", { class: "small" }, h("span", { class: "pill" + (p.status === "active" ? " ok" : "") }, p.status), " ", p.reels.length ? h("span", { class: "pill" }, `${p.reels.length} reel${p.reels.length > 1 ? "s" : ""}`) : null)))));
+  },
+
+  // ---------- Designs (made in Canva, free) ----------
+  async designs() {
+    const r = await fetch("/designs/designs.json", { cache: "no-store" });
+    const { designs = [] } = r.ok ? await r.json() : {};
+    const copy = (txt, msg) => navigator.clipboard?.writeText(txt).then(() => toast(msg), () => toast("Couldn't copy. Press and hold the text to copy it."));
+    const intro = h("div", { class: "panel" }, h("h2", {}, "Designs"),
+      h("p", {}, "Tell Claude your idea in the project chat, for example \"a Diwali post for our jhumkas\". Claude makes it in your free Canva account and puts it here with the caption and the steps to post it."),
+      h("p", { class: "small muted" }, "Tap Edit in Canva to change words or colours yourself. Download saves the picture to your phone."));
+    if (!designs.length) return [intro, h("div", { class: "panel muted" }, "No designs yet.")];
+    return [intro, h("div", { class: "pieces" }, ...designs.map(d => h("div", { class: "card piece" },
+      d.image ? h("img", { src: d.image, alt: d.title, loading: "lazy", style: "aspect-ratio:auto" })
+        : h("a", { href: d.canva_url, target: "_blank", rel: "noopener", class: "muted small", style: "aspect-ratio:4/5;display:grid;place-items:center;background:#000;border-radius:6px;text-align:center;padding:12px" }, "Preview not saved here yet. Tap to open it in Canva."),
+      h("div", { class: "top", style: "margin-top:8px" }, h("b", {}, d.title), h("span", { class: "pill" }, d.format)),
+      h("p", { class: "small muted" }, `Idea: ${d.idea}`),
+      d.caption ? h("div", { class: "said" }, d.caption + (d.hashtags?.length ? "\n\n" + d.hashtags.map(t => "#" + t).join(" ") : "")) : null,
+      d.steps?.length ? h("details", {}, h("summary", { class: "small" }, "How to post it"), h("ol", { class: "small" }, ...d.steps.map(st => h("li", {}, st)))) : null,
+      h("div", { class: "row", style: "margin-top:8px" },
+        d.image ? h("a", { class: "btn primary", href: d.image, download: d.id + ".png" }, "Download") : null,
+        d.caption ? h("button", { onclick: () => copy(d.caption + (d.hashtags?.length ? "\n\n" + d.hashtags.map(t => "#" + t).join(" ") : ""), "Caption copied.") }, "Copy caption") : null,
+        d.canva_url ? h("a", { class: "btn", href: d.canva_url, target: "_blank", rel: "noopener" }, "Edit in Canva") : null))))];
   },
 
   // ---------- Money ----------
