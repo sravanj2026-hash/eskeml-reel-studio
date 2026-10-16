@@ -80,6 +80,14 @@ td.n,th.n{text-align:right}
 #toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--gold);padding:10px 16px;border-radius:8px;max-width:calc(100% - 32px);z-index:9}
 dialog{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:10px;max-width:min(560px,calc(100% - 32px));width:100%}
 dialog::backdrop{background:rgba(0,0,0,.6)}
+.up{color:var(--ok);font-size:11px}.down{color:var(--bad);font-size:11px}
+.meter{height:8px;border-radius:4px;background:var(--panel);overflow:hidden}.meter i{display:block;height:100%;background:var(--gold)}
+.next{background:linear-gradient(135deg,#3a1a28,#22111a);border:1px solid var(--gold)}
+.next b.big{font-family:var(--display);font-size:18px;color:var(--gold2)}
+.plan td:first-child{white-space:nowrap}
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font-size:11px;font-family:var(--ui)}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted)}.legend i{display:inline-block;width:12px;height:3px;margin-right:6px;vertical-align:middle}
 .login{max-width:360px;margin:12vh auto;display:flex;flex-direction:column;gap:12px}
 </style>
 </head>
@@ -188,7 +196,8 @@ const VIEWS = {
   // ---------- Today ----------
   async today() {
     const s = await api("summary"); COUNTS = s.counts; drawNav(); $("brand").textContent = s.business;
-    const [rem, book] = await Promise.all([api("reminders.list"), api("bookings.list")]);
+    const [rem, book, brief] = await Promise.all([api("reminders.list"), api("bookings.list"), api("brief")]);
+    WORTH = brief.worth_limit;
     const rate = (m, p) => s.rates.find(r => r.metal === m && r.purity === p)?.rate_per_g ?? "";
     const rateRows = [["gold", "24K"], ["gold", "22K"], ["gold", "18K"], ["silver", "925"]];
     const rateForm = h("div", { class: "form" }, ...rateRows.map(([m, p]) => field(`${p} ${m} (₹/g)`, inp(`${m}|${p}`, rate(m, p), "number", { min: 0, step: "0.01", inputmode: "decimal" }))));
@@ -206,6 +215,7 @@ const VIEWS = {
           kpi(c.pending_drafts, "replies to approve"), kpi(c.new_leads, "new enquiries today"), kpi(c.calls_today, "calls / visits today"),
           kpi(c.open_orders, "orders in progress"), kpi(c.due_this_week, "orders due this week"), kpi(rs(m.customers_owe), "customers owe you")),
         h("div", { class: "row", style: "margin-top:10px" }, ...conn)),
+      ...briefPanels(brief),
       h("div", { class: "grid" },
         h("div", { class: "panel" }, h("h2", {}, "Today's metal rate"),
           missing ? h("p", { class: "pill warn" }, "Not set yet. The assistant won't quote prices until you save it.") : null,
@@ -256,7 +266,8 @@ const VIEWS = {
     const list = h("div", { class: "list" }, ...leads.map(l => h("button", { class: "card lead" + (INBOX.sel === l.id ? " on" : ""), onclick: () => { INBOX.sel = l.id; render(); } },
       h("div", { class: "top" }, h("b", {}, l.name || l.phone || (l.instagram_handle ? "@" + l.instagram_handle : "Instagram customer")), h("span", { class: "pill" }, l.channel)),
       h("div", { class: "small muted", style: "overflow:hidden;text-overflow:ellipsis;white-space:nowrap" }, l.last_body || ""),
-      h("div", { class: "small" }, h("span", { class: "pill" }, l.status), l.pending ? h("span", { class: "pill warn", style: "margin-left:4px" }, "reply ready") : null))));
+      h("div", { class: "small" }, h("span", { class: "pill" }, l.status), l.pending ? h("span", { class: "pill warn", style: "margin-left:4px" }, "reply ready") : null,
+        l.budget >= WORTH ? h("span", { class: "pill warn", style: "margin-left:4px" }, `worth your time · ${rs(l.budget)}`) : null))));
     const left = h("div", { class: "panel" }, h("div", { class: "row", style: "justify-content:space-between;margin-bottom:10px" }, h("h2", { style: "margin:0" }, "Inbox"), h("button", { onclick: addLead }, "+ Call or walk-in")), filter, h("div", { style: "margin-top:10px" }, leads.length ? list : h("p", { class: "muted" }, "No conversations here yet.")));
     return h("div", { class: "inbox" }, left, INBOX.sel ? await chatPanel(INBOX.sel) : h("div", { class: "panel muted" }, "Pick a conversation."));
   },
@@ -286,11 +297,16 @@ const VIEWS = {
 
   // ---------- Money ----------
   async money() {
-    const [{ summary: m, weeks }, { payables }] = await Promise.all([api("forecast"), api("payables.list")]);
+    const [{ summary: m, weeks, trend }, { payables }] = await Promise.all([api("forecast"), api("payables.list")]);
     const max = Math.max(1, ...weeks.map(w => Math.abs(w.balance)));
     const pf = h("div", { class: "form" }, field("Pay to", inp("party", "", "text", { placeholder: "Karigar, supplier, rent…" })), field("Amount (₹)", inp("amount", "", "number", { min: 1 })), field("Due date", inp("due_date", "", "date")), field("Note", inp("note")));
     return [
       h("div", { class: "panel" }, h("h2", {}, "This month"), h("div", { class: "kpis" }, kpi(rs(m.month_sales), `sales (${m.month_orders} orders)`), kpi(rs(m.month_received), "money received"), kpi(rs(m.customers_owe), `customers owe (${m.orders_with_balance} orders)`), kpi(rs(m.bills_unpaid), "bills to pay"))),
+      h("div", { class: "panel" }, h("h2", {}, "Last 30 days"), trendChart(trend.series)),
+      h("div", { class: "panel" }, h("h2", {}, "Where sales come from (30 days)"),
+        trend.channels.length ? h("div", { class: "scroll" }, h("table", {}, h("thead", {}, h("tr", {}, h("th", {}, "Channel"), h("th", { class: "n" }, "Enquiries"), h("th", { class: "n" }, "Orders"), h("th", { class: "n" }, "Sales"))),
+          h("tbody", {}, ...trend.channels.map(c => h("tr", {}, h("td", {}, CHANNEL[c.channel] || c.channel), h("td", { class: "n" }, c.enquiries), h("td", { class: "n" }, c.orders), h("td", { class: "n" }, rs(c.sales))))))) :
+          h("p", { class: "muted" }, "No enquiries or orders in the last 30 days yet.")),
       h("div", { class: "panel" }, h("h2", {}, "Cash forecast, next 8 weeks"), h("p", { class: "muted small" }, "Starts from the cash on hand in Settings. Money in is what customers still owe, by order due date. Money out is the bills below."),
         h("div", { class: "scroll" }, h("table", {}, h("thead", {}, h("tr", {}, h("th", {}, "Week of"), h("th", { class: "n" }, "In"), h("th", { class: "n" }, "Out"), h("th", { class: "n" }, "Balance"), h("th", { style: "width:30%" }, ""))),
           h("tbody", {}, ...weeks.map(w => h("tr", {}, h("td", {}, w.week_of), h("td", { class: "n" }, rs(w.cash_in)), h("td", { class: "n" }, rs(w.cash_out)), h("td", { class: "n" }, rs(w.balance)),
@@ -330,6 +346,77 @@ const VIEWS = {
 const INBOX = { filter: "open", sel: null };
 const CAT = { search: "" };
 const kpi = (v, label) => h("div", { class: "kpi" }, h("b", {}, v ?? 0), h("span", {}, label));
+
+let WORTH = 50000;
+const CHANNEL = { whatsapp: "WhatsApp", instagram: "Instagram", web: "Website", call: "Phone call", walk_in: "Walk-in", referral: "Referral", exhibition: "Exhibition", direct: "Direct (no enquiry)" };
+const hourLabel = hr => new Date(2000, 0, 1, Math.floor(hr), Math.round((hr % 1) * 60)).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
+// "+2 vs day before", coloured by direction.
+const delta = (a, b, fmt = x => x) => a === b ? h("span", { class: "muted small" }, "same as day before") : h("span", { class: a > b ? "up" : "down" }, `${a > b ? "+" : "−"}${fmt(Math.abs(a - b))} vs day before`);
+const kpiD = (v, label, d) => h("div", { class: "kpi" }, h("b", {}, v), h("span", {}, label), h("div", {}, d));
+
+// Ticks on the posting plan are remembered for today on this phone only.
+const planKey = () => "aoe-posted-" + new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+const planGet = () => { try { return JSON.parse(localStorage.getItem(planKey()) || "{}"); } catch { return {}; } };
+const planSet = v => { try { localStorage.setItem(planKey(), JSON.stringify(v)); } catch {} };
+
+function briefPanels(b) {
+  const y = b.yesterday, p = b.before;
+  const STATUS = o => o.paid >= o.total ? ["Paid", "ok"] : o.paid >= o.advance_due && o.paid > 0 ? ["Advance paid", "ok"] : ["Waiting for advance", "warn"];
+  const sales = h("div", { class: "list" },
+    ...b.sales.map(o => { const [t, c] = STATUS(o); return h("div", { class: "card" }, h("div", { class: "top" }, h("b", {}, `${o.name || o.phone || "Customer"} · ${rs(o.total)}`), h("span", { class: "pill " + c }, t)),
+      h("div", { class: "small muted" }, `${o.number} · from ${CHANNEL[o.channel] || o.channel} · ${STAGE_LABEL[o.stage] || o.stage}`)); }),
+    ...b.booked.map(k => h("div", { class: "card" }, h("div", { class: "top" }, h("b", {}, k.name || k.phone || "Customer"), h("span", { class: "pill" }, "Booked")),
+      h("div", { class: "small muted" }, `${k.kind === "store_visit" ? "Store visit" : "Video call"} · ${when(k.starts_at)}`))));
+  const worth = b.worth.length ? h("div", { class: "list" }, ...b.worth.map(l => h("div", { class: "card" },
+    h("div", { class: "top" }, h("b", {}, l.name || l.phone || (l.instagram_handle ? "@" + l.instagram_handle : "Customer")), h("span", { class: "pill warn" }, "Your call")),
+    h("div", { class: "small" }, [l.interest, l.budget && "budget " + rs(l.budget), l.occasion].filter(Boolean).join(" · ")),
+    h("div", { class: "small muted" }, `${CHANNEL[l.channel] || l.channel} · ${l.status}`),
+    h("div", { class: "row", style: "margin-top:6px" }, h("button", { onclick: () => { INBOX.sel = l.id; go("inbox"); } }, "Open chat"))))) :
+    h("p", { class: "muted" }, `No open enquiries above ${rs(b.worth_limit)} right now. Big ones appear here so you handle them yourself.`);
+  const maxAsk = Math.max(1, ...b.asked.map(a => a.now_n));
+  const asked = b.asked.length ? h("div", { class: "list" }, ...b.asked.map(a => h("div", {},
+    h("div", { class: "row", style: "justify-content:space-between" }, h("span", {}, a.interest), h("span", { class: "small" }, `${a.now_n} `, a.now_n === a.before_n ? null : h("span", { class: a.now_n > a.before_n ? "up" : "down" }, a.now_n > a.before_n ? `▲ ${a.now_n - a.before_n}` : `▼ ${a.before_n - a.now_n}`))),
+    h("div", { class: "meter" }, h("i", { style: `width:${Math.round(a.now_n / maxAsk * 100)}%` }))))) :
+    h("p", { class: "muted" }, "Once customers ask for things on WhatsApp, Instagram or calls, the most-asked categories show here.");
+  // Post 30 minutes before the hour customers write to you most; 7:30 PM until there's enough data.
+  const postAt = b.hours.peak_hour != null ? Math.max(8, b.hours.peak_hour - 0.5) : 19.5;
+  const done = planGet();
+  const PLAN = [["ig", "Instagram reel", postAt], ["fb", "Facebook post", postAt], ["yt", "YouTube Short", postAt + 0.5], ["wa", "WhatsApp Status", 9]];
+  const plan = h("table", { class: "plan" }, h("tbody", {}, ...PLAN.map(([k, name, at]) => h("tr", {}, h("td", {}, hourLabel(at)), h("td", {}, name),
+    h("td", { class: "n" }, h("label", { class: "inline", style: "justify-content:flex-end" }, h("input", { type: "checkbox", checked: done[k], onchange: e => { const v = planGet(); v[k] = e.target.checked; planSet(v); } }), "Posted"))))));
+  const n = b.make_next;
+  return [
+    h("div", { class: "panel" }, h("h2", {}, "Morning brief · yesterday"), h("div", { class: "kpis" },
+      kpiD(y.enquiries, "new enquiries", delta(y.enquiries, p.enquiries)), kpiD(y.orders, "orders", delta(y.orders, p.orders)), kpiD(rs(y.received), "money received", delta(y.received, p.received, rs)))),
+    h("div", { class: "grid" },
+      h("div", { class: "panel" }, h("h2", {}, "Worth your time"), worth),
+      h("div", { class: "panel" }, h("h2", {}, "Enquiries that became sales (7 days)"), b.sales.length || b.booked.length ? sales : h("p", { class: "muted" }, "Orders and booked visits from the last week show here.")),
+      h("div", { class: "panel" }, h("h2", {}, "What customers are asking for"), h("p", { class: "small muted" }, "Last 30 days, with the change from the 30 days before."), asked)),
+    h("div", { class: "grid" },
+      h("div", { class: "panel next" }, h("h2", {}, "Make next"),
+        n ? [h("b", { class: "big" }, `A reel for ${n.name || n.sku}`), h("p", { class: "small muted" }, `${n.sku}${n.category ? " · " + n.category : ""} · ${n.reels ? n.reels + " reel" + (n.reels > 1 ? "s" : "") + " so far" : "no reel yet"}`), h("p", {}, n.because + "."),
+          h("a", { class: "btn primary", href: "/?sku=" + encodeURIComponent(n.sku) }, "Make the reel in Reel Studio")] :
+          h("p", { class: "muted" }, "Add pieces to your catalogue and the next reel to make will be suggested here.")),
+      h("div", { class: "panel" }, h("h2", {}, "Today's posting plan"),
+        h("p", { class: "small muted" }, b.hours.peak_hour != null ? `Your customers write to you most around ${hourLabel(b.hours.peak_hour)}, so post just before.` : "Evening suits most Indian jewellery buyers. Once customers have written to you more often, this uses your own busiest hour."),
+        plan, h("p", { class: "small muted" }, "Post the same reel on each one. Tick each as you go."))),
+  ];
+}
+
+// 30-day line chart: orders booked (gold) and money received (green).
+function trendChart(series) {
+  const W = Math.round(Math.min(640, Math.max(300, innerWidth - 64))), H = W < 500 ? 180 : 200, L = 70, B = 22, T = 10, max = Math.max(1, ...series.flatMap(d => [d.sales, d.received]));
+  const x = i => L + i * (W - L - 8) / Math.max(1, series.length - 1), y = v => T + (H - T - B) * (1 - v / max);
+  const path = k => series.map((d, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(d[k]).toFixed(1)}`).join("");
+  const NS = "http://www.w3.org/2000/svg", el = (t, a, txt) => { const e = document.createElementNS(NS, t); for (const [k, v] of Object.entries(a)) e.setAttribute(k, v); if (txt != null) e.textContent = txt; return e; };
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, class: "chart", role: "img", "aria-label": "Sales and money received per day, last 30 days" });
+  for (const f of [0, 0.5, 1]) { svg.append(el("line", { x1: L, x2: W - 8, y1: y(max * f), y2: y(max * f), stroke: "#4a2a37" }), el("text", { x: L - 6, y: y(max * f) + 4, "text-anchor": "end" }, rs(max * f))); }
+  for (const i of [0, Math.floor(series.length / 2), series.length - 1]) svg.append(el("text", { x: x(i), y: H - 6, "text-anchor": i ? (i === series.length - 1 ? "end" : "middle") : "start" }, new Date(series[i].day).toLocaleDateString("en-IN", { day: "numeric", month: "short" })));
+  svg.append(el("path", { d: path("received"), fill: "none", stroke: "#7fd49a", "stroke-width": 2 }), el("path", { d: path("sales"), fill: "none", stroke: "#e3a923", "stroke-width": 2.5 }));
+  const tot = k => series.reduce((t, d) => t + d[k], 0);
+  return [h("div", { class: "kpis", style: "margin-bottom:10px" }, kpi(rs(tot("sales")), `orders booked (${tot("orders")})`), kpi(rs(tot("received")), "money received")),
+    svg, h("div", { class: "legend" }, h("span", {}, h("i", { style: "background:#e3a923" }), "Orders booked"), h("span", {}, h("i", { style: "background:#7fd49a" }), "Money received"))];
+}
 
 async function chatPanel(id) {
   const { lead, messages, drafts } = await api("lead.get", { id });

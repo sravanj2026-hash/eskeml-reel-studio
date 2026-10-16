@@ -1463,6 +1463,8 @@ async function boot() {
   $("pillPR").classList.toggle("on", AI.photoroom); $("pillRW").classList.toggle("on", AI.runway); $("pillCL").classList.toggle("on", AI.claude);
   $("aiCut").disabled = $("aiBackdrop").disabled = !AI.photoroom; $("aiVideo").disabled = !AI.runway; $("aiBtn").disabled = !AI.claude;
   $("catBox").hidden = !AI.catalogue; try { $("catPass").value = sessionStorage.getItem("aoe-pass") || ""; } catch {}
+  // Opened from the dashboard's "Make next" card: fill in the piece's SKU.
+  const wantSku = new URLSearchParams(location.search).get("sku"); if (wantSku) $("catSku").value = wantSku.toUpperCase();
   $("autoClipWrap").hidden = !AI.runway; $("passWrap").hidden = !AI.passcode;
   const off = [!AI.photoroom && "Photoroom (PHOTOROOM_API_KEY)", !AI.runway && "Runway (RUNWAYML_API_SECRET)", !AI.claude && "Claude (ANTHROPIC_API_KEY)"].filter(Boolean);
   $("aiNote").textContent = off.length ? `Not switched on yet: ${off.join(", ")}. Add the keys in your hosting settings to enable them.` : "All AI services are on.";

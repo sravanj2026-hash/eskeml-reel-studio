@@ -8,6 +8,7 @@ import { createOrder, moveStage, recordPayment, payUrl, STAGES } from "../lib/or
 import { createInvoice } from "../lib/invoice.js";
 import { moneySummary, cashForecast } from "../lib/finance.js";
 import { signedUpload } from "../lib/storage.js";
+import { morningBrief, salesTrend } from "../lib/brief.js";
 import { istDate, addDays } from "../lib/time.js";
 
 // The owner dashboard's API. Every call is POST { action, ...fields } with the
@@ -174,7 +175,8 @@ const actions = {
     return { payable: await one("insert into payables (party, amount, due_date, note) values ($1, $2, $3, $4) returning *", [party, Number(amount), due_date, note || null]) };
   },
   async "payable.paid"({ id }) { await q("update payables set paid = true where id = $1", [id]); return { ok: true }; },
-  async forecast() { return { summary: await moneySummary(), weeks: await cashForecast() }; },
+  async forecast() { const [summary, weeks, trend] = await Promise.all([moneySummary(), cashForecast(), salesTrend()]); return { summary, weeks, trend }; },
+  async brief() { return morningBrief(); },
 
   async "settings.get"() { return { settings: await getSettings() }; },
   async "settings.save"({ settings }) { return { settings: await saveSettings(settings) }; },

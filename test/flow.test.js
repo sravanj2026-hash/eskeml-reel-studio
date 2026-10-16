@@ -225,3 +225,17 @@ test("optional Claude engine: tools run here and prices come from the catalogue,
   assert.doesNotMatch(toolResult.content, /Temple Necklace/);
   assert.equal((await one("select occasion, budget from leads where id = $1", [lead.id])).occasion, "engagement");
 });
+
+test("morning brief and 30-day trend read from the same data", { skip }, async () => {
+  const b = await A("brief");
+  for (const k of ["yesterday", "before", "sales", "booked", "worth", "asked", "hours"]) assert.ok(k in b, k);
+  assert.ok(b.sales.length >= 1, "orders made this week show as sales");
+  // The engagement lead's 300000 budget is above the 50000 approval limit, so it's worth your time.
+  assert.ok(b.worth.some(l => Number(l.budget) === 300000));
+  if (b.make_next) assert.ok(b.make_next.sku);
+  const f = await A("forecast");
+  assert.equal(f.trend.series.length, 30);
+  const total = f.trend.series.reduce((t, d) => t + d.sales, 0);
+  assert.ok(total > 0);
+  assert.equal(f.trend.channels.reduce((t, c) => t + c.sales, 0), total);
+});
