@@ -1,6 +1,34 @@
 {
   "designs": [
     {
+      "id": "dasara-bangles-classic",
+      "title": "Dasara Gold Bangles (clean premium style)",
+      "format": "Instagram post + reel (9:16)",
+      "idea": "Clean, premium look like big jewellery brand ads: soft cream background, bangles big and sharp, short classy text.",
+      "image": "/designs/dasara-bangles-classic-post.jpg",
+      "video": "/designs/dasara-bangles-classic-reel.mp4",
+      "canva_url": null,
+      "caption": "Made for your Dasara. ✨\n\nHandcrafted gold bangles with emeralds, rubies and sparkling white stones, set by hand with peacock motifs.\n\nWishing you and your family a very Happy Dasara! 🙏\n\nDM or WhatsApp us to order.",
+      "hashtags": [
+        "ArtOfEskeml",
+        "HappyDasara",
+        "Dussehra",
+        "Vijayadashami",
+        "GoldBangles",
+        "BanglesLove",
+        "IndianJewellery",
+        "HandcraftedJewellery",
+        "FestiveLook",
+        "TempleJewellery"
+      ],
+      "steps": [
+        "Tap Download video and Download picture.",
+        "Open Instagram, tap + and choose Reel. Pick the video.",
+        "Add a soft festive song from Instagram music.",
+        "Copy the caption and paste it. Then tap Share."
+      ]
+    },
+    {
       "id": "dasara-bangles",
       "title": "Dasara Gold Bangles",
       "format": "Instagram carousel (4 pictures) + video",
