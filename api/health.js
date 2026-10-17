@@ -7,5 +7,6 @@ export default function handler(req, res) {
     runway: Boolean(process.env.RUNWAYML_API_SECRET),
     claude: Boolean(process.env.ANTHROPIC_API_KEY),
     passcode: Boolean(process.env.STUDIO_PASSCODE),
+    catalogue: Boolean(process.env.DATABASE_URL && process.env.ADMIN_PASSCODE),
   });
 }

@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Art of Eskeml Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Manrope:wght@400;500;700&display=swap">
+<style>
+/* The owner's one screen: today, approvals, inbox, orders, catalogue, money, settings. Same maroon and gold as Reel Studio. */
+:root{
+  --bg:#170a10; --panel:#22111a; --panel2:#2d1622; --line:#4a2a37;
+  --fg:#f4e9df; --muted:#b99f9a; --gold:#e3a923; --gold2:#f6d27a;
+  --ok:#7fd49a; --warn:#f0a35e; --bad:#ef7d7d;
+  --display:"Cinzel",Georgia,serif; --ui:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--fg)}
+body{margin:0;font-family:var(--ui);font-size:14px;line-height:1.5;padding:0 16px 48px}
+[hidden]{display:none!important}
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 0 12px;border-bottom:1px solid var(--line)}
+header h1{font-family:var(--display);color:var(--gold);font-size:20px;letter-spacing:.08em;margin:0}
+header .grow{flex:1}
+nav{display:flex;gap:6px;overflow-x:auto;padding:10px 0;margin-bottom:12px;scrollbar-width:none}
+nav button{white-space:nowrap}
+nav button.on{background:var(--gold);color:#2a0b16;border-color:var(--gold);font-weight:700}
+nav .count{display:inline-block;min-width:18px;padding:0 5px;margin-left:6px;border-radius:9px;background:var(--bad);color:#fff;font-size:11px;text-align:center}
+h2{font-family:var(--display);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0 0 10px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px;min-width:0}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))}
+.kpis{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+.kpi{background:var(--panel2);border-radius:8px;padding:10px 12px}
+.kpi b{display:block;font-size:22px;font-variant-numeric:tabular-nums}
+.kpi span{color:var(--muted);font-size:12px}
+button,.btn{font:inherit;cursor:pointer;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--fg);padding:8px 12px;font-weight:500;text-decoration:none;display:inline-block}
+button:hover:not(:disabled),.btn:hover{border-color:var(--gold)}
+button:disabled{opacity:.5;cursor:default}
+.primary{background:var(--gold);border-color:var(--gold);color:#2a0b16;font-weight:700}
+.danger{color:var(--bad)}
+input,select,textarea{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font:inherit;width:100%;min-width:0}
+textarea{min-height:90px;resize:vertical}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+label.inline{flex-direction:row;align-items:center;gap:8px;color:var(--fg);font-size:14px}
+label.inline input{width:auto}
+.form{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr))}
+.form .full{grid-column:1/-1}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.muted{color:var(--muted)}
+.small{font-size:12px}
+.list{display:flex;flex-direction:column;gap:10px}
+.card{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px;min-width:0}
+.card .top{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.pill{display:inline-block;font-size:11px;padding:1px 8px;border-radius:10px;border:1px solid var(--line);color:var(--muted)}
+.pill.warn{color:var(--warn);border-color:var(--warn)}
+.pill.ok{color:var(--ok);border-color:var(--ok)}
+.said{border-left:3px solid var(--line);padding-left:10px;color:var(--muted);margin:8px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.inbox{display:grid;gap:14px;grid-template-columns:minmax(0,300px) minmax(0,1fr)}
+@media (max-width:760px){.inbox{grid-template-columns:minmax(0,1fr)}}
+.lead{cursor:pointer;text-align:left;width:100%}
+.lead.on{border-color:var(--gold)}
+.chat{display:flex;flex-direction:column;gap:6px;max-height:55vh;overflow:auto;padding:4px}
+.msg{max-width:85%;padding:8px 10px;border-radius:10px;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.in{background:var(--panel2);align-self:flex-start}
+.msg.out{background:#3a2a12;align-self:flex-end}
+.msg small{display:block;color:var(--muted);font-size:11px}
+.board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(220px,1fr);gap:10px;overflow-x:auto;padding-bottom:8px}
+.col{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px;min-height:120px}
+.col h3{font-size:12px;margin:0 0 8px;color:var(--gold2);letter-spacing:.04em}
+.pieces{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(min(100%,200px),1fr))}
+.piece img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;background:#000}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+td.n,th.n{text-align:right}
+.scroll{overflow-x:auto}
+.bar{height:8px;border-radius:4px;background:var(--gold)}
+.bar.neg{background:var(--bad)}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--gold);padding:10px 16px;border-radius:8px;max-width:calc(100% - 32px);z-index:9}
+dialog{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:10px;max-width:min(560px,calc(100% - 32px));width:100%}
+dialog::backdrop{background:rgba(0,0,0,.6)}
+.up{color:var(--ok);font-size:11px}.down{color:var(--bad);font-size:11px}
+.meter{height:8px;border-radius:4px;background:var(--panel);overflow:hidden}.meter i{display:block;height:100%;background:var(--gold)}
+.next{background:linear-gradient(135deg,#3a1a28,#22111a);border:1px solid var(--gold)}
+.next b.big{font-family:var(--display);font-size:18px;color:var(--gold2)}
+.plan td:first-child{white-space:nowrap}
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font-size:11px;font-family:var(--ui)}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted)}.legend i{display:inline-block;width:12px;height:3px;margin-right:6px;vertical-align:middle}
+.login{max-width:360px;margin:12vh auto;display:flex;flex-direction:column;gap:12px}
+</style>
+</head>
+<body>
+<div id="loginView" class="login panel" hidden>
+  <h2>Art of Eskeml</h2>
+  <label>Dashboard passcode<input id="pass" type="password" autocomplete="current-password"></label>
+  <button class="primary" id="loginBtn">Open dashboard</button>
+  <p class="muted small" id="loginErr"></p>
+</div>
+
+<div id="app" hidden>
+  <header>
+    <h1 id="brand">Art of Eskeml</h1>
+    <span class="grow"></span>
+    <a class="btn" href="/">Reel Studio</a>
+    <button id="logout">Lock</button>
+  </header>
+  <nav id="nav"></nav>
+  <main id="view"></main>
+</div>
+<div id="toast" hidden></div>
+<dialog id="dlg"></dialog>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const store = { get: k => { try { return sessionStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { sessionStorage.setItem(k, v); } catch {} }, del: k => { try { sessionStorage.removeItem(k); } catch {} } };
+let PASS = store.get("aoe-pass") || "";
+let TAB = "today";
+const STAGE_LABEL = { design_approved: "Design approved", advance_paid: "Advance paid", in_making: "In making", qc: "Quality check", hallmarked: "Hallmarked", shipped: "Shipped", delivered: "Delivered" };
+const rs = n => "₹" + Math.round(Number(n) || 0).toLocaleString("en-IN");
+const when = d => d ? new Date(d).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : "";
+
+// Builds DOM safely: customer text always goes in as text, never as HTML.
+function h(tag, attrs = {}, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else if (k === "class") el.className = v;
+    else if (k === "value") el.value = v;
+    else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of kids.flat()) if (c != null && c !== false) el.append(c instanceof Node ? c : String(c));
+  return el;
+}
+const field = (label, input, cls) => h("label", { class: cls }, label, input);
+const inp = (name, value = "", type = "text", extra = {}) => h("input", { name, value: value ?? "", type, ...extra });
+
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => t.hidden = true, 3500); }
+
+async function api(action, body = {}) {
+  const r = await fetch("/api/admin", { method: "POST", headers: { "Content-Type": "application/json", "x-admin-passcode": PASS }, body: JSON.stringify({ action, ...body }) });
+  const data = await r.json().catch(() => ({ error: "The server sent an unexpected answer." }));
+  if (r.status === 401) { showLogin("Wrong passcode."); throw new Error(data.error); }
+  if (!r.ok) throw new Error(data.error || "Something went wrong.");
+  return data;
+}
+async function act(btn, fn) {
+  if (btn) btn.disabled = true;
+  try { return await fn(); } catch (e) { toast(e.message); } finally { if (btn) btn.disabled = false; }
+}
+// A message that couldn't go out free through the API comes back as a link for the owner's phone.
+function delivered(res) {
+  if (!res) return;
+  if (res.sent) return toast("Sent.");
+  if (res.link) { openDialog("Send from your phone", h("p", {}, "This customer hasn't written in the last 24 hours, so free sending isn't allowed. Tap below to open the chat with the message ready, then press Send."), h("div", { class: "row" }, h("a", { class: "btn primary", href: res.link, target: "_blank", rel: "noopener" }, "Open chat"))); }
+  else toast("Saved. Copy the message and send it yourself.");
+}
+function openDialog(title, ...body) {
+  const d = $("dlg"); d.replaceChildren(h("h2", {}, title), ...body, h("div", { class: "row", style: "margin-top:12px;justify-content:flex-end" }, h("button", { onclick: () => d.close() }, "Close")));
+  d.showModal();
+}
+
+function showLogin(msg = "") { $("app").hidden = true; $("loginView").hidden = false; $("loginErr").textContent = msg; PASS = ""; store.del("aoe-pass"); }
+$("loginBtn").onclick = async () => {
+  PASS = $("pass").value; store.set("aoe-pass", PASS);
+  try { await api("summary"); start(); } catch (e) { $("loginErr").textContent = e.message; }
+};
+$("pass").addEventListener("keydown", e => e.key === "Enter" && $("loginBtn").click());
+$("logout").onclick = () => showLogin();
+
+const TABS = [["today", "Today"], ["approvals", "Approvals"], ["inbox", "Inbox"], ["orders", "Orders"], ["catalogue", "Catalogue"], ["designs", "Designs"], ["money", "Money"], ["settings", "Settings"]];
+let COUNTS = {};
+function drawNav() {
+  $("nav").replaceChildren(...TABS.map(([id, label]) => {
+    const n = id === "approvals" ? COUNTS.pending_drafts : id === "today" ? COUNTS.to_send : 0;
+    return h("button", { class: TAB === id ? "on" : "", onclick: () => go(id) }, label, n ? h("span", { class: "count" }, n) : null);
+  }));
+}
+function go(id) { TAB = id; try { history.replaceState(null, "", "#" + id); } catch {} drawNav(); render(); }
+async function start() {
+  $("loginView").hidden = true; $("app").hidden = false;
+  TAB = TABS.some(t => t[0] === location.hash.slice(1)) ? location.hash.slice(1) : "today";
+  drawNav(); render();
+}
+async function render() {
+  const v = $("view");
+  v.replaceChildren(h("p", { class: "muted" }, "Loading…"));
+  try { v.replaceChildren(...[].concat(await VIEWS[TAB]())); }
+  catch (e) { v.replaceChildren(h("div", { class: "panel" }, h("p", {}, e.message))); }
+}
+
+const VIEWS = {
+  // ---------- Today ----------
+  async today() {
+    const s = await api("summary"); COUNTS = s.counts; drawNav(); $("brand").textContent = s.business;
+    const [rem, book, brief] = await Promise.all([api("reminders.list"), api("bookings.list"), api("brief")]);
+    WORTH = brief.worth_limit;
+    const rate = (m, p) => s.rates.find(r => r.metal === m && r.purity === p)?.rate_per_g ?? "";
+    const rateRows = [["gold", "24K"], ["gold", "22K"], ["gold", "18K"], ["silver", "925"]];
+    const rateForm = h("div", { class: "form" }, ...rateRows.map(([m, p]) => field(`${p} ${m} (₹/g)`, inp(`${m}|${p}`, rate(m, p), "number", { min: 0, step: "0.01", inputmode: "decimal" }))));
+    const saveRates = h("button", { class: "primary", onclick: e => act(e.target, async () => {
+      const rates = [...rateForm.querySelectorAll("input")].filter(i => i.value).map(i => { const [metal, purity] = i.name.split("|"); return { metal, purity, rate_per_g: Number(i.value) }; });
+      await api("rates.set", { rates }); toast("Today's rates saved."); render();
+    }) }, "Save today's rates");
+    const missing = !s.rates.length;
+    const c = s.counts, m = s.money;
+    const conn = Object.entries({ WhatsApp: s.connected.whatsapp, Instagram: s.connected.instagram, "Photo uploads": s.connected.storage, "Claude (optional)": s.connected.claude })
+      .map(([k, on]) => h("span", { class: "pill " + (on ? "ok" : "") }, `${k}: ${on ? "on" : "off"}`));
+    return [
+      h("div", { class: "panel" }, h("h2", {}, "Today, " + new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })),
+        h("div", { class: "kpis" },
+          kpi(c.pending_drafts, "replies to approve"), kpi(c.new_leads, "new enquiries today"), kpi(c.calls_today, "calls / visits today"),
+          kpi(c.open_orders, "orders in progress"), kpi(c.due_this_week, "orders due this week"), kpi(rs(m.customers_owe), "customers owe you")),
+        h("div", { class: "row", style: "margin-top:10px" }, ...conn)),
+      ...briefPanels(brief),
+      h("div", { class: "grid" },
+        h("div", { class: "panel" }, h("h2", {}, "Today's metal rate"),
+          missing ? h("p", { class: "pill warn" }, "Not set yet. The assistant won't quote prices until you save it.") : null,
+          rateForm, h("div", { class: "row", style: "margin-top:10px" }, saveRates)),
+        h("div", { class: "panel" }, h("h2", {}, "To send from your phone"),
+          rem.reminders.length ? h("div", { class: "list" }, ...rem.reminders.map(r => h("div", { class: "card" },
+            h("div", { class: "top" }, h("b", {}, r.name || r.phone || "Customer"), h("span", { class: "pill" }, r.kind)),
+            h("div", { class: "said" }, r.body),
+            h("div", { class: "row" }, r.link ? h("a", { class: "btn primary", href: r.link, target: "_blank", rel: "noopener" }, "Open chat") : h("span", { class: "muted small" }, "No phone number"),
+              h("button", { onclick: e => act(e.target, async () => { await api("reminder.done", { kind: r.kind, ref: r.ref }); render(); }) }, "Done"))))) :
+            h("p", { class: "muted" }, "Nothing waiting. Review asks, thank-yous and payment reminders appear here when the customer hasn't messaged in 24 hours.")),
+        h("div", { class: "panel" }, h("h2", {}, "Upcoming calls and visits"),
+          book.bookings.length ? h("div", { class: "list" }, ...book.bookings.map(b => h("div", { class: "card" },
+            h("div", { class: "top" }, h("b", {}, when(b.starts_at)), h("span", { class: "pill" }, b.kind.replace("_", " "))), h("div", {}, b.name || b.phone || ""),
+            h("div", { class: "row" }, b.phone ? h("a", { class: "btn", href: `https://wa.me/${b.phone}`, target: "_blank", rel: "noopener" }, "WhatsApp") : null,
+              h("button", { onclick: e => act(e.target, async () => { await api("booking.status", { id: b.id, status: "done" }); render(); }) }, "Done"),
+              h("button", { class: "danger", onclick: e => act(e.target, async () => { await api("booking.status", { id: b.id, status: "cancelled" }); render(); }) }, "Cancel"))))) :
+            h("p", { class: "muted" }, "No calls booked."))),
+    ];
+  },
+
+  // ---------- Approvals ----------
+  async approvals() {
+    const { drafts } = await api("drafts.list");
+    COUNTS.pending_drafts = drafts.length; drawNav();
+    if (!drafts.length) return h("div", { class: "panel" }, h("h2", {}, "Approvals"), h("p", { class: "muted" }, "All caught up. New replies from the assistant appear here for you to check and send."));
+    return h("div", { class: "panel" }, h("h2", {}, `Approvals (${drafts.length})`), h("div", { class: "list" }, ...drafts.map(d => {
+      const ta = h("textarea", { value: d.body, rows: 6 });
+      return h("div", { class: "card" },
+        h("div", { class: "top" }, h("b", {}, d.name || d.phone || "Customer"), h("span", {}, h("span", { class: "pill" }, d.channel), " ", h("span", { class: "pill" }, d.kind), " ", h("span", { class: "pill" }, d.author === "claude" ? "Claude" : "Assistant"))),
+        d.customer_said ? h("div", { class: "said" }, d.customer_said) : null,
+        d.reason ? h("p", { class: "small" }, h("span", { class: "pill warn" }, d.reason)) : null,
+        d.quote ? h("p", { class: "small muted" }, `Quote: ${d.quote.lines.map(l => `${l.sku} ${rs(l.total)}`).join(", ")} · total ${rs(d.quote.total)}`) : null,
+        d.piece_skus.length ? h("p", { class: "small muted" }, "Photos attached: " + d.piece_skus.join(", ")) : null,
+        ta,
+        h("div", { class: "row", style: "margin-top:8px" },
+          h("button", { class: "primary", onclick: e => act(e.target, async () => { const r = await api("draft.approve", { id: d.id, body: ta.value }); delivered(r.draft.delivery); render(); }) }, "Send"),
+          h("button", { onclick: () => { TAB = "inbox"; INBOX.sel = d.lead_id; go("inbox"); } }, "Open chat"),
+          h("button", { class: "danger", onclick: e => act(e.target, async () => { await api("draft.reject", { id: d.id }); render(); }) }, "Discard")));
+    })));
+  },
+
+  // ---------- Inbox ----------
+  async inbox() {
+    const { leads } = await api("leads.list", { status: INBOX.filter });
+    const filter = h("select", { onchange: e => { INBOX.filter = e.target.value; render(); } },
+      ...[["open", "Open"], ["new", "New"], ["quoted", "Quoted"], ["booked", "Booked"], ["won", "Won"], ["lost", "Lost"], ["all", "All"]].map(([v, l]) => h("option", { value: v, selected: INBOX.filter === v }, l)));
+    const list = h("div", { class: "list" }, ...leads.map(l => h("button", { class: "card lead" + (INBOX.sel === l.id ? " on" : ""), onclick: () => { INBOX.sel = l.id; render(); } },
+      h("div", { class: "top" }, h("b", {}, l.name || l.phone || (l.instagram_handle ? "@" + l.instagram_handle : "Instagram customer")), h("span", { class: "pill" }, l.channel)),
+      h("div", { class: "small muted", style: "overflow:hidden;text-overflow:ellipsis;white-space:nowrap" }, l.last_body || ""),
+      h("div", { class: "small" }, h("span", { class: "pill" }, l.status), l.pending ? h("span", { class: "pill warn", style: "margin-left:4px" }, "reply ready") : null,
+        l.budget >= WORTH ? h("span", { class: "pill warn", style: "margin-left:4px" }, `worth your time · ${rs(l.budget)}`) : null))));
+    const left = h("div", { class: "panel" }, h("div", { class: "row", style: "justify-content:space-between;margin-bottom:10px" }, h("h2", { style: "margin:0" }, "Inbox"), h("button", { onclick: addLead }, "+ Call or walk-in")), filter, h("div", { style: "margin-top:10px" }, leads.length ? list : h("p", { class: "muted" }, "No conversations here yet.")));
+    return h("div", { class: "inbox" }, left, INBOX.sel ? await chatPanel(INBOX.sel) : h("div", { class: "panel muted" }, "Pick a conversation."));
+  },
+
+  // ---------- Orders ----------
+  async orders() {
+    const { orders, stages } = await api("orders.list", {});
+    const board = h("div", { class: "board" }, ...stages.map(st => h("div", { class: "col" }, h("h3", {}, `${STAGE_LABEL[st]} (${orders.filter(o => o.stage === st).length})`),
+      ...orders.filter(o => o.stage === st).map(o => h("button", { class: "card lead", style: "margin-bottom:8px", onclick: () => orderDialog(o.id) },
+        h("b", {}, o.number), h("div", { class: "small" }, o.name || o.phone), h("div", { class: "small muted" }, o.items || ""),
+        h("div", { class: "small" }, rs(o.total), o.paid < o.total ? h("span", { class: "pill warn", style: "margin-left:6px" }, `due ${rs(o.total - o.paid)}`) : h("span", { class: "pill ok", style: "margin-left:6px" }, "paid")),
+        o.due_date ? h("div", { class: "small muted" }, "Due " + o.due_date) : null)))));
+    return h("div", { class: "panel" }, h("div", { class: "row", style: "justify-content:space-between;margin-bottom:10px" }, h("h2", { style: "margin:0" }, "Orders"), h("button", { class: "primary", onclick: () => newOrder() }, "+ New order")), board);
+  },
+
+  // ---------- Catalogue ----------
+  async catalogue() {
+    const { pieces } = await api("pieces.list", { search: CAT.search });
+    const search = inp("q", CAT.search, "search", { placeholder: "Search SKU, name, category" });
+    search.addEventListener("change", e => { CAT.search = e.target.value; render(); });
+    return h("div", { class: "panel" }, h("div", { class: "row", style: "justify-content:space-between;margin-bottom:10px" }, h("h2", { style: "margin:0" }, `Catalogue (${pieces.length})`), h("button", { class: "primary", onclick: () => pieceDialog({}) }, "+ Add piece")),
+      search, h("div", { class: "pieces", style: "margin-top:12px" }, ...pieces.map(p => h("button", { class: "card lead piece", onclick: () => pieceDialog(p) },
+        p.photos[0] ? h("img", { src: p.photos[0], alt: p.name, loading: "lazy" }) : h("div", { class: "muted small", style: "aspect-ratio:1;display:grid;place-items:center;background:#000;border-radius:6px" }, "No photo"),
+        h("b", {}, p.name || p.sku), h("div", { class: "small muted" }, `${p.sku} · ${p.purity} ${p.metal} · ${p.net_weight_g ?? p.gross_weight_g ?? "?"} g`),
+        h("div", { class: "small" }, h("span", { class: "pill" + (p.status === "active" ? " ok" : "") }, p.status), " ", p.reels.length ? h("span", { class: "pill" }, `${p.reels.length} reel${p.reels.length > 1 ? "s" : ""}`) : null)))));
+  },
+
+  // ---------- Designs (made in Canva, free) ----------
+  async designs() {
+    const r = await fetch("/designs/designs.json", { cache: "no-store" });
+    const { designs = [] } = r.ok ? await r.json() : {};
+    const copy = (txt, msg) => navigator.clipboard?.writeText(txt).then(() => toast(msg), () => toast("Couldn't copy. Press and hold the text to copy it."));
+    const intro = h("div", { class: "panel" }, h("h2", {}, "Designs"),
+      h("p", {}, "Tell Claude your idea in the project chat, for example \"a Diwali post for our jhumkas\". Claude makes it in your free Canva account and puts it here with the caption and the steps to post it."),
+      h("p", { class: "small muted" }, "Tap Edit in Canva to change words or colours yourself. Download saves the picture to your phone."));
+    if (!designs.length) return [intro, h("div", { class: "panel muted" }, "No designs yet.")];
+    return [intro, h("div", { class: "pieces" }, ...designs.map(d => h("div", { class: "card piece" },
+      d.video ? h("video", { src: d.video, poster: d.image || "", controls: true, playsinline: true, muted: true, loop: true, preload: "none", style: "width:100%;border-radius:6px;background:#000" })
+        : d.image ? h("img", { src: d.image, alt: d.title, loading: "lazy", style: "aspect-ratio:auto" })
+        : h("a", { href: d.canva_url, target: "_blank", rel: "noopener", class: "muted small", style: "aspect-ratio:4/5;display:grid;place-items:center;background:#000;border-radius:6px;text-align:center;padding:12px" }, "Preview not saved here yet. Tap to open it in Canva."),
+      d.images?.length > 1 ? h("div", { class: "row", style: "margin-top:8px;gap:6px;flex-wrap:nowrap;overflow-x:auto" }, ...d.images.map((src, i) => h("a", { href: src, download: `${d.id}-${i + 1}.jpg`, title: "Tap to save this picture" }, h("img", { src, alt: `${d.title} ${i + 1}`, loading: "lazy", style: "width:72px;aspect-ratio:3/4;object-fit:cover;border-radius:4px" })))) : null,
+      h("div", { class: "top", style: "margin-top:8px" }, h("b", {}, d.title), h("span", { class: "pill" }, d.format)),
+      h("p", { class: "small muted" }, `Idea: ${d.idea}`),
+      d.caption ? h("div", { class: "said" }, d.caption + (d.hashtags?.length ? "\n\n" + d.hashtags.map(t => "#" + t).join(" ") : "")) : null,
+      d.steps?.length ? h("details", {}, h("summary", { class: "small" }, "How to post it"), h("ol", { class: "small" }, ...d.steps.map(st => h("li", {}, st)))) : null,
+      h("div", { class: "row", style: "margin-top:8px" },
+        d.image ? h("a", { class: "btn primary", href: d.image, download: d.id + "." + d.image.split(".").pop() }, d.video ? "Download picture" : "Download") : null,
+        d.video ? h("a", { class: "btn primary", href: d.video, download: d.id + "-reel.mp4" }, "Download video") : null,
+        d.caption ? h("button", { onclick: () => copy(d.caption + (d.hashtags?.length ? "\n\n" + d.hashtags.map(t => "#" + t).join(" ") : ""), "Caption copied.") }, "Copy caption") : null,
+        d.canva_url ? h("a", { class: "btn", href: d.canva_url, target: "_blank", rel: "noopener" }, "Edit in Canva") : null))))];
+  },
+
+  // ---------- Money ----------
+  async money() {
+    const [{ summary: m, weeks, trend }, { payables }] = await Promise.all([api("forecast"), api("payables.list")]);
+    const max = Math.max(1, ...weeks.map(w => Math.abs(w.balance)));
+    const pf = h("div", { class: "form" }, field("Pay to", inp("party", "", "text", { placeholder: "Karigar, supplier, rent…" })), field("Amount (₹)", inp("amount", "", "number", { min: 1 })), field("Due date", inp("due_date", "", "date")), field("Note", inp("note")));
+    return [
+      h("div", { class: "panel" }, h("h2", {}, "This month"), h("div", { class: "kpis" }, kpi(rs(m.month_sales), `sales (${m.month_orders} orders)`), kpi(rs(m.month_received), "money received"), kpi(rs(m.customers_owe), `customers owe (${m.orders_with_balance} orders)`), kpi(rs(m.bills_unpaid), "bills to pay"))),
+      h("div", { class: "panel" }, h("h2", {}, "Last 30 days"), trendChart(trend.series)),
+      h("div", { class: "panel" }, h("h2", {}, "Where sales come from (30 days)"),
+        trend.channels.length ? h("div", { class: "scroll" }, h("table", {}, h("thead", {}, h("tr", {}, h("th", {}, "Channel"), h("th", { class: "n" }, "Enquiries"), h("th", { class: "n" }, "Orders"), h("th", { class: "n" }, "Sales"))),
+          h("tbody", {}, ...trend.channels.map(c => h("tr", {}, h("td", {}, CHANNEL[c.channel] || c.channel), h("td", { class: "n" }, c.enquiries), h("td", { class: "n" }, c.orders), h("td", { class: "n" }, rs(c.sales))))))) :
+          h("p", { class: "muted" }, "No enquiries or orders in the last 30 days yet.")),
+      h("div", { class: "panel" }, h("h2", {}, "Cash forecast, next 8 weeks"), h("p", { class: "muted small" }, "Starts from the cash on hand in Settings. Money in is what customers still owe, by order due date. Money out is the bills below."),
+        h("div", { class: "scroll" }, h("table", {}, h("thead", {}, h("tr", {}, h("th", {}, "Week of"), h("th", { class: "n" }, "In"), h("th", { class: "n" }, "Out"), h("th", { class: "n" }, "Balance"), h("th", { style: "width:30%" }, ""))),
+          h("tbody", {}, ...weeks.map(w => h("tr", {}, h("td", {}, w.week_of), h("td", { class: "n" }, rs(w.cash_in)), h("td", { class: "n" }, rs(w.cash_out)), h("td", { class: "n" }, rs(w.balance)),
+            h("td", {}, h("div", { class: "bar" + (w.balance < 0 ? " neg" : ""), style: `width:${Math.round(Math.abs(w.balance) / max * 100)}%` })))))))),
+      h("div", { class: "panel" }, h("h2", {}, "Bills to pay"), pf, h("div", { class: "row", style: "margin:10px 0" }, h("button", { class: "primary", onclick: e => act(e.target, async () => {
+        const f = Object.fromEntries([...pf.querySelectorAll("input")].map(i => [i.name, i.value])); await api("payable.save", f); toast("Bill added."); render(); }) }, "Add bill")),
+        h("div", { class: "scroll" }, h("table", {}, h("tbody", {}, ...payables.map(p => h("tr", {}, h("td", {}, p.party, p.note ? h("div", { class: "small muted" }, p.note) : null), h("td", {}, p.due_date), h("td", { class: "n" }, rs(p.amount)),
+          h("td", {}, p.paid ? h("span", { class: "pill ok" }, "paid") : h("button", { onclick: e => act(e.target, async () => { await api("payable.paid", { id: p.id }); render(); }) }, "Mark paid")))))))),
+    ];
+  },
+
+  // ---------- Settings ----------
+  async settings() {
+    const { settings: s } = await api("settings.get");
+    const b = s.business;
+    const f = h("div", { class: "form" },
+      field("Business name", inp("business.name", b.name)), field("GSTIN", inp("business.gstin", b.gstin)), field("State (for CGST/SGST vs IGST)", inp("business.state", b.state)),
+      field("Phone", inp("business.phone", b.phone)), field("Address (on invoices)", inp("business.address", b.address), "full"),
+      field("UPI ID (payments go here, free)", inp("business.upi_id", b.upi_id, "text", { placeholder: "yourname@okhdfcbank" })), field("Name shown in UPI apps", inp("business.upi_name", b.upi_name)),
+      field("Google review link", inp("business.review_link", b.review_link, "url"), "full"),
+      field("GST % on jewellery", inp("gst_percent", s.gst_percent, "number", { step: "0.01" })), field("Advance for custom orders (%)", inp("advance_percent", s.advance_percent, "number")),
+      field("Quotes above this need you (₹)", inp("approval.max_quote", s.approval.max_quote, "number")), field("Discounts above this need you (%)", inp("approval.max_discount_percent", s.approval.max_discount_percent, "number")),
+      field("Call hours from", inp("hours.start", s.hours.start, "time")), field("Call hours to", inp("hours.end", s.hours.end, "time")), field("Slot length (minutes)", inp("hours.slot_minutes", s.hours.slot_minutes, "number")),
+      field("Order and invoice prefix", inp("invoice_prefix", s.invoice_prefix)), field("Cash on hand today (₹)", inp("cash_on_hand", s.cash_on_hand, "number")),
+      h("label", { class: "inline full" }, inp("auto_send.replies", "", "checkbox", { checked: s.auto_send.replies }), "Send the assistant's replies automatically when nothing needs your decision (start with this off)"));
+    const save = h("button", { class: "primary", onclick: e => act(e.target, async () => {
+      const out = structuredClone(s);
+      for (const i of f.querySelectorAll("input")) {
+        const path = i.name.split("."), val = i.type === "checkbox" ? i.checked : i.type === "number" ? Number(i.value) : i.value;
+        if (path.length === 1) out[path[0]] = val; else out[path[0]][path[1]] = val;
+      }
+      await api("settings.save", { settings: out }); toast("Settings saved.");
+    }) }, "Save settings");
+    return h("div", { class: "panel" }, h("h2", {}, "Settings"), f, h("div", { class: "row", style: "margin-top:12px" }, save));
+  },
+};
+const INBOX = { filter: "open", sel: null };
+const CAT = { search: "" };
+const kpi = (v, label) => h("div", { class: "kpi" }, h("b", {}, v ?? 0), h("span", {}, label));
+
+let WORTH = 50000;
+const CHANNEL = { whatsapp: "WhatsApp", instagram: "Instagram", web: "Website", call: "Phone call", walk_in: "Walk-in", referral: "Referral", exhibition: "Exhibition", direct: "Direct (no enquiry)" };
+const hourLabel = hr => new Date(2000, 0, 1, Math.floor(hr), Math.round((hr % 1) * 60)).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
+// "+2 vs day before", coloured by direction.
+const delta = (a, b, fmt = x => x) => a === b ? h("span", { class: "muted small" }, "same as day before") : h("span", { class: a > b ? "up" : "down" }, `${a > b ? "+" : "−"}${fmt(Math.abs(a - b))} vs day before`);
+const kpiD = (v, label, d) => h("div", { class: "kpi" }, h("b", {}, v), h("span", {}, label), h("div", {}, d));
+
+// Ticks on the posting plan are remembered for today on this phone only.
+const planKey = () => "aoe-posted-" + new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+const planGet = () => { try { return JSON.parse(localStorage.getItem(planKey()) || "{}"); } catch { return {}; } };
+const planSet = v => { try { localStorage.setItem(planKey(), JSON.stringify(v)); } catch {} };
+
+function briefPanels(b) {
+  const y = b.yesterday, p = b.before;
+  const STATUS = o => o.paid >= o.total ? ["Paid", "ok"] : o.paid >= o.advance_due && o.paid > 0 ? ["Advance paid", "ok"] : ["Waiting for advance", "warn"];
+  const sales = h("div", { class: "list" },
+    ...b.sales.map(o => { const [t, c] = STATUS(o); return h("div", { class: "card" }, h("div", { class: "top" }, h("b", {}, `${o.name || o.phone || "Customer"} · ${rs(o.total)}`), h("span", { class: "pill " + c }, t)),
+      h("div", { class: "small muted" }, `${o.number} · from ${CHANNEL[o.channel] || o.channel} · ${STAGE_LABEL[o.stage] || o.stage}`)); }),
+    ...b.booked.map(k => h("div", { class: "card" }, h("div", { class: "top" }, h("b", {}, k.name || k.phone || "Customer"), h("span", { class: "pill" }, "Booked")),
+      h("div", { class: "small muted" }, `${k.kind === "store_visit" ? "Store visit" : "Video call"} · ${when(k.starts_at)}`))));
+  const worth = b.worth.length ? h("div", { class: "list" }, ...b.worth.map(l => h("div", { class: "card" },
+    h("div", { class: "top" }, h("b", {}, l.name || l.phone || (l.instagram_handle ? "@" + l.instagram_handle : "Customer")), h("span", { class: "pill warn" }, "Your call")),
+    h("div", { class: "small" }, [l.interest, l.budget && "budget " + rs(l.budget), l.occasion].filter(Boolean).join(" · ")),
+    h("div", { class: "small muted" }, `${CHANNEL[l.channel] || l.channel} · ${l.status}`),
+    h("div", { class: "row", style: "margin-top:6px" }, h("button", { onclick: () => { INBOX.sel = l.id; go("inbox"); } }, "Open chat"))))) :
+    h("p", { class: "muted" }, `No open enquiries above ${rs(b.worth_limit)} right now. Big ones appear here so you handle them yourself.`);
+  const maxAsk = Math.max(1, ...b.asked.map(a => a.now_n));
+  const asked = b.asked.length ? h("div", { class: "list" }, ...b.asked.map(a => h("div", {},
+    h("div", { class: "row", style: "justify-content:space-between" }, h("span", {}, a.interest), h("span", { class: "small" }, `${a.now_n} `, a.now_n === a.before_n ? null : h("span", { class: a.now_n > a.before_n ? "up" : "down" }, a.now_n > a.before_n ? `▲ ${a.now_n - a.before_n}` : `▼ ${a.before_n - a.now_n}`))),
+    h("div", { class: "meter" }, h("i", { style: `width:${Math.round(a.now_n / maxAsk * 100)}%` }))))) :
+    h("p", { class: "muted" }, "Once customers ask for things on WhatsApp, Instagram or calls, the most-asked categories show here.");
+  // Post 30 minutes before the hour customers write to you most; 7:30 PM until there's enough data.
+  const postAt = b.hours.peak_hour != null ? Math.max(8, b.hours.peak_hour - 0.5) : 19.5;
+  const done = planGet();
+  const PLAN = [["ig", "Instagram reel", postAt], ["fb", "Facebook post", postAt], ["yt", "YouTube Short", postAt + 0.5], ["wa", "WhatsApp Status", 9]];
+  const plan = h("table", { class: "plan" }, h("tbody", {}, ...PLAN.map(([k, name, at]) => h("tr", {}, h("td", {}, hourLabel(at)), h("td", {}, name),
+    h("td", { class: "n" }, h("label", { class: "inline", style: "justify-content:flex-end" }, h("input", { type: "checkbox", checked: done[k], onchange: e => { const v = planGet(); v[k] = e.target.checked; planSet(v); } }), "Posted"))))));
+  const n = b.make_next;
+  return [
+    h("div", { class: "panel" }, h("h2", {}, "Morning brief · yesterday"), h("div", { class: "kpis" },
+      kpiD(y.enquiries, "new enquiries", delta(y.enquiries, p.enquiries)), kpiD(y.orders, "orders", delta(y.orders, p.orders)), kpiD(rs(y.received), "money received", delta(y.received, p.received, rs)))),
+    h("div", { class: "grid" },
+      h("div", { class: "panel" }, h("h2", {}, "Worth your time"), worth),
+      h("div", { class: "panel" }, h("h2", {}, "Enquiries that became sales (7 days)"), b.sales.length || b.booked.length ? sales : h("p", { class: "muted" }, "Orders and booked visits from the last week show here.")),
+      h("div", { class: "panel" }, h("h2", {}, "What customers are asking for"), h("p", { class: "small muted" }, "Last 30 days, with the change from the 30 days before."), asked)),
+    h("div", { class: "grid" },
+      h("div", { class: "panel next" }, h("h2", {}, "Make next"),
+        n ? [h("b", { class: "big" }, `A reel for ${n.name || n.sku}`), h("p", { class: "small muted" }, `${n.sku}${n.category ? " · " + n.category : ""} · ${n.reels ? n.reels + " reel" + (n.reels > 1 ? "s" : "") + " so far" : "no reel yet"}`), h("p", {}, n.because + "."),
+          h("a", { class: "btn primary", href: "/?sku=" + encodeURIComponent(n.sku) }, "Make the reel in Reel Studio")] :
+          h("p", { class: "muted" }, "Add pieces to your catalogue and the next reel to make will be suggested here.")),
+      h("div", { class: "panel" }, h("h2", {}, "Today's posting plan"),
+        h("p", { class: "small muted" }, b.hours.peak_hour != null ? `Your customers write to you most around ${hourLabel(b.hours.peak_hour)}, so post just before.` : "Evening suits most Indian jewellery buyers. Once customers have written to you more often, this uses your own busiest hour."),
+        plan, h("p", { class: "small muted" }, "Post the same reel on each one. Tick each as you go."))),
+  ];
+}
+
+// 30-day line chart: orders booked (gold) and money received (green).
+function trendChart(series) {
+  const W = Math.round(Math.min(640, Math.max(300, innerWidth - 64))), H = W < 500 ? 180 : 200, L = 70, B = 22, T = 10, max = Math.max(1, ...series.flatMap(d => [d.sales, d.received]));
+  const x = i => L + i * (W - L - 8) / Math.max(1, series.length - 1), y = v => T + (H - T - B) * (1 - v / max);
+  const path = k => series.map((d, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(d[k]).toFixed(1)}`).join("");
+  const NS = "http://www.w3.org/2000/svg", el = (t, a, txt) => { const e = document.createElementNS(NS, t); for (const [k, v] of Object.entries(a)) e.setAttribute(k, v); if (txt != null) e.textContent = txt; return e; };
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, class: "chart", role: "img", "aria-label": "Sales and money received per day, last 30 days" });
+  for (const f of [0, 0.5, 1]) { svg.append(el("line", { x1: L, x2: W - 8, y1: y(max * f), y2: y(max * f), stroke: "#4a2a37" }), el("text", { x: L - 6, y: y(max * f) + 4, "text-anchor": "end" }, rs(max * f))); }
+  for (const i of [0, Math.floor(series.length / 2), series.length - 1]) svg.append(el("text", { x: x(i), y: H - 6, "text-anchor": i ? (i === series.length - 1 ? "end" : "middle") : "start" }, new Date(series[i].day).toLocaleDateString("en-IN", { day: "numeric", month: "short" })));
+  svg.append(el("path", { d: path("received"), fill: "none", stroke: "#7fd49a", "stroke-width": 2 }), el("path", { d: path("sales"), fill: "none", stroke: "#e3a923", "stroke-width": 2.5 }));
+  const tot = k => series.reduce((t, d) => t + d[k], 0);
+  return [h("div", { class: "kpis", style: "margin-bottom:10px" }, kpi(rs(tot("sales")), `orders booked (${tot("orders")})`), kpi(rs(tot("received")), "money received")),
+    svg, h("div", { class: "legend" }, h("span", {}, h("i", { style: "background:#e3a923" }), "Orders booked"), h("span", {}, h("i", { style: "background:#7fd49a" }), "Money received"))];
+}
+
+async function chatPanel(id) {
+  const { lead, messages, drafts } = await api("lead.get", { id });
+  const c = lead.customer;
+  const chat = h("div", { class: "chat" }, ...messages.map(m => h("div", { class: "msg " + m.direction }, m.body, h("small", {}, `${when(m.at)}${m.status === "manual" ? " · send from your phone" : ""}`))));
+  const box = h("textarea", { placeholder: "Write a reply…", rows: 3 });
+  const pending = drafts.find(d => d.status === "pending");
+  if (pending) box.value = pending.body;
+  const status = h("select", { onchange: e => act(null, async () => { await api("lead.status", { id, status: e.target.value }); toast("Updated."); }) },
+    ...["new", "talking", "quoted", "booked", "won", "lost"].map(s => h("option", { value: s, selected: lead.status === s }, s)));
+  setTimeout(() => chat.scrollTop = chat.scrollHeight);
+  return h("div", { class: "panel" },
+    h("div", { class: "top row", style: "justify-content:space-between" }, h("div", {}, h("b", {}, c.name || c.phone || "Customer"), h("div", { class: "small muted" }, [c.phone, c.instagram_handle && "@" + c.instagram_handle, lead.channel].filter(Boolean).join(" · "))), status),
+    h("p", { class: "small muted" }, `Interest: ${lead.interest || "?"} · Budget: ${lead.budget ? rs(lead.budget) : "?"} · Occasion: ${lead.occasion || "?"}`),
+    chat, pending ? h("p", { class: "small" }, h("span", { class: "pill warn" }, "Draft from the assistant loaded below. Edit it, then send.")) : null, box,
+    h("div", { class: "row", style: "margin-top:8px" },
+      h("button", { class: "primary", onclick: e => act(e.target, async () => {
+        const r = pending && box.value.trim() ? (await api("draft.approve", { id: pending.id, body: box.value })).draft.delivery : await api("lead.reply", { id, text: box.value });
+        delivered(r); render(); }) }, "Send"),
+      h("button", { onclick: e => act(e.target, async () => { await api("lead.draft", { id }); toast("New draft ready."); render(); }) }, "Draft a reply for me"),
+      h("button", { onclick: () => newOrder({ name: c.name, phone: c.phone, customer_id: c.id, lead_id: lead.id }) }, "Make order")));
+}
+
+function addLead() {
+  const f = h("div", { class: "form" }, field("Name", inp("name")), field("Phone", inp("phone", "", "tel")), field("Instagram handle", inp("instagram_handle")),
+    field("How they came", h("select", { name: "channel" }, ...["call", "walk_in", "referral", "exhibition", "web"].map(v => h("option", { value: v }, v.replace("_", " "))))), field("What they asked for", h("textarea", { name: "note" }), "full"));
+  openDialog("New enquiry", f, h("div", { class: "row", style: "margin-top:10px" }, h("button", { class: "primary", onclick: e => act(e.target, async () => {
+    const data = Object.fromEntries([...f.querySelectorAll("input,select,textarea")].map(i => [i.name, i.value]));
+    const { lead } = await api("lead.add", data); $("dlg").close(); INBOX.sel = lead.id; go("inbox"); }) }, "Save")));
+}
+
+function newOrder(pre = {}) {
+  const items = h("div", { class: "list" });
+  const addItem = (custom) => items.append(h("div", { class: "form card" }, ...(custom
+    ? [field("Custom piece description", inp("description"), "full"), field("Price before GST (₹)", inp("amount", "", "number")), field("Qty", inp("qty", 1, "number", { min: 1 }))]
+    : [field("Catalogue SKU", inp("sku", "", "text", { placeholder: "e.g. ER-0012" })), field("Qty", inp("qty", 1, "number", { min: 1 }))])));
+  addItem(false);
+  const f = h("div", { class: "form" }, field("Customer name", inp("name", pre.name)), field("Phone", inp("phone", pre.phone, "tel")), field("Customer state", inp("state", "", "text", { placeholder: "for GST" })),
+    field("Type", h("select", { name: "type" }, h("option", { value: "custom" }, "Custom / made to order"), h("option", { value: "ready" }, "Ready piece"))),
+    field("Discount %", inp("discount_percent", 0, "number", { min: 0, step: "0.5" })), field("Due date", inp("due_date", "", "date")), field("Notes", inp("notes"), "full"));
+  openDialog("New order", f, h("h2", { style: "margin-top:12px" }, "Items"), items,
+    h("div", { class: "row", style: "margin-top:8px" }, h("button", { onclick: () => addItem(false) }, "+ Catalogue piece"), h("button", { onclick: () => addItem(true) }, "+ Custom piece")),
+    h("p", { class: "small muted" }, "Prices use today's metal rate. The customer gets the order summary and a UPI payment link for the advance."),
+    h("div", { class: "row" }, h("button", { class: "primary", onclick: e => act(e.target, async () => {
+      const get = el => Object.fromEntries([...el.querySelectorAll("input,select")].map(i => [i.name, i.value]));
+      const data = get(f);
+      const its = [...items.children].map(get).filter(i => i.sku || i.description).map(i => i.sku ? { sku: i.sku.trim().toUpperCase(), qty: Number(i.qty) } : { description: i.description, amount: Number(i.amount), qty: Number(i.qty) });
+      const r = await api("order.create", { ...data, discount_percent: Number(data.discount_percent) || 0, due_date: data.due_date || null, customer_id: pre.customer_id, lead_id: pre.lead_id, items: its });
+      $("dlg").close(); delivered(r.delivery); go("orders"); }) }, "Create order")));
+}
+
+async function orderDialog(id) {
+  const { order: o, items, events, payments, invoice } = await api("order.get", { id });
+  const STAGES = Object.keys(STAGE_LABEL), next = STAGES[STAGES.indexOf(o.stage) + 1];
+  const huid = inp("huid", o.huid || "", "text", { placeholder: "6-character HUID" }), track = inp("tracking_url", o.tracking_url || "", "url", { placeholder: "Courier tracking link" }), note = inp("note", "", "text", { placeholder: "Note for the customer (optional)" });
+  const amt = inp("amount", Math.max(0, (o.paid < o.advance_due ? o.advance_due : o.total) - o.paid), "number"), method = h("select", {}, ...["upi", "cash", "card", "bank"].map(m => h("option", { value: m }, m.toUpperCase())));
+  openDialog(`Order ${o.number}`,
+    h("p", {}, h("b", {}, o.customer.name || o.customer.phone), " · ", STAGE_LABEL[o.stage]),
+    h("div", { class: "scroll" }, h("table", {}, h("tbody", {}, ...items.map(i => h("tr", {}, h("td", {}, i.description), h("td", { class: "n" }, "×" + i.qty), h("td", { class: "n" }, rs(i.breakup.total * i.qty)))),
+      h("tr", {}, h("td", {}, h("b", {}, "Total")), h("td", {}), h("td", { class: "n" }, h("b", {}, rs(o.total)))), h("tr", {}, h("td", {}, "Paid"), h("td", {}), h("td", { class: "n" }, rs(o.paid)))))),
+    h("p", { class: "small" }, "Payment page for the customer: ", h("a", { href: o.pay_url, target: "_blank", rel: "noopener" }, "open"), " · ", h("button", { onclick: () => navigator.clipboard?.writeText(location.origin + o.pay_url.replace(/^https?:\/\/[^/]+/, "")).then(() => toast("Link copied.")) }, "Copy link")),
+    next ? h("div", { class: "card" }, h("b", {}, "Move to: " + STAGE_LABEL[next]), next === "hallmarked" ? field("HUID", huid) : null, next === "shipped" ? field("Tracking link", track) : null, field("Note", note),
+      h("div", { class: "row", style: "margin-top:8px" }, h("button", { class: "primary", onclick: e => act(e.target, async () => {
+        const r = await api("order.stage", { id, stage: next, huid: huid.value, tracking_url: track.value, note: note.value || null });
+        $("dlg").close(); delivered(r.delivery); render(); }) }, `Mark ${STAGE_LABEL[next].toLowerCase()}`))) : h("p", { class: "pill ok" }, "Delivered"),
+    h("div", { class: "card", style: "margin-top:10px" }, h("b", {}, "Record a payment"), h("div", { class: "form" }, field("Amount (₹)", amt), field("Method", method)),
+      h("div", { class: "row", style: "margin-top:8px" }, h("button", { onclick: e => act(e.target, async () => { await api("order.payment", { id, amount: Number(amt.value), method: method.value }); toast("Payment saved."); $("dlg").close(); render(); }) }, "Save payment"))),
+    h("div", { class: "row", style: "margin-top:10px" }, h("button", { onclick: e => act(e.target, async () => {
+      const r = await api("order.invoice", { id }); const bin = atob(r.pdf_base64), u8 = Uint8Array.from(bin, ch => ch.charCodeAt(0));
+      const a = h("a", { href: URL.createObjectURL(new Blob([u8], { type: "application/pdf" })), download: r.number.replace(/\//g, "-") + ".pdf" }); a.click(); }) }, invoice ? `Download invoice ${invoice.number}` : "Create GST invoice")),
+    h("h2", { style: "margin-top:14px" }, "History"), h("div", { class: "small" }, ...events.map(ev => h("div", {}, `${when(ev.at)} · ${STAGE_LABEL[ev.stage] || ev.stage}${ev.note ? " · " + ev.note : ""}${ev.customer_notified === "link" ? " · (send from phone)" : ev.customer_notified === "sent" ? " · customer told" : ""}`)),
+      ...payments.map(p => h("div", { class: "muted" }, `${when(p.at)} · received ${rs(p.amount)} by ${p.method}`))));
+}
+
+function pieceDialog(p) {
+  const v = k => p[k] ?? "";
+  const f = h("div", { class: "form" },
+    field("SKU", inp("sku", v("sku"), "text", { readonly: p.sku ? true : null })), field("Name", inp("name", v("name"))), field("Category", inp("category", v("category"), "text", { placeholder: "earrings, necklace…" })),
+    field("Metal", h("select", { name: "metal" }, ...["gold", "silver", "platinum"].map(m => h("option", { value: m, selected: (p.metal || "gold") === m }, m)))), field("Purity", inp("purity", p.purity || "22K")),
+    field("Gross weight (g)", inp("gross_weight_g", v("gross_weight_g"), "number", { step: "0.001" })), field("Net weight (g)", inp("net_weight_g", v("net_weight_g"), "number", { step: "0.001" })),
+    field("Making charge type", h("select", { name: "making_type" }, ...[["percent", "% of metal"], ["per_gram", "₹ per gram"], ["flat", "Flat ₹"]].map(([k, l]) => h("option", { value: k, selected: (p.making_type || "percent") === k }, l)))),
+    field("Making charge", inp("making_value", v("making_value"), "number", { step: "0.01" })), field("Stones / other (₹)", inp("stone_cost", v("stone_cost"), "number")), field("Stock", inp("stock", p.stock ?? 1, "number")),
+    field("Status", h("select", { name: "status" }, ...["active", "made_to_order", "sold", "hidden"].map(s => h("option", { value: s, selected: (p.status || "active") === s }, s.replace(/_/g, " "))))),
+    field("Tagline", inp("tagline", v("tagline")), "full"), field("Caption", h("textarea", { name: "caption", value: v("caption") }), "full"), field("Hashtags", inp("hashtags", (p.hashtags || []).join(" ")), "full"));
+  const file = h("input", { type: "file", accept: "image/*,video/mp4,video/webm", multiple: true });
+  const media = h("div", { class: "row" }, ...(p.photos || []).map(u => h("img", { src: u, alt: "", style: "width:64px;height:64px;object-fit:cover;border-radius:6px" })), ...(p.reels || []).map((u, i) => h("a", { href: u, target: "_blank", rel: "noopener", class: "pill" }, `Reel ${i + 1}`)));
+  openDialog(p.sku ? `Piece ${p.sku}` : "New piece", f, h("h2", { style: "margin-top:12px" }, "Photos and reels"), media, field("Add files (needs Supabase storage)", file),
+    h("div", { class: "row", style: "margin-top:12px" }, h("button", { class: "primary", onclick: e => act(e.target, async () => {
+      const piece = Object.fromEntries([...f.querySelectorAll("input,select,textarea")].map(i => [i.name, i.value]));
+      const { piece: saved } = await api("pieces.save", { piece });
+      for (const fl of file.files) await uploadMedia(saved.sku, fl);
+      $("dlg").close(); toast("Piece saved."); render(); }) }, "Save piece")));
+}
+
+async function uploadMedia(sku, fileOrBlob, name = fileOrBlob.name || "reel.mp4") {
+  const kind = (fileOrBlob.type || "").startsWith("video") ? "reel" : "photo";
+  const { upload_url, public_url } = await api("pieces.upload_url", { sku, filename: name, kind });
+  const r = await fetch(upload_url, { method: "PUT", headers: { "Content-Type": fileOrBlob.type || "application/octet-stream", "x-upsert": "true" }, body: fileOrBlob });
+  if (!r.ok) throw new Error("Upload failed. Check the storage bucket exists and is public.");
+  await api("pieces.add_media", { sku, kind, url: public_url });
+}
+
+if (PASS) api("summary").then(start).catch(() => showLogin()); else showLogin();
+</script>
+</body>
+</html>

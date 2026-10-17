@@ -200,6 +200,17 @@ button.primary:hover:not(:disabled){background:var(--gold2)}
       </div>
     </div>
 
+    <div class="panel" id="catBox" hidden>
+      <h2>Art of Eskeml catalogue</h2>
+      <p class="note">Save this piece's name, tagline, caption, photo and reels to your catalogue, so the sales assistant can send them to customers.</p>
+      <div class="row2">
+        <label class="f">Piece SKU<input type="text" id="catSku" placeholder="e.g. ER-0012" autocomplete="off"></label>
+        <label class="f">Dashboard passcode<input type="password" id="catPass" autocomplete="current-password"></label>
+      </div>
+      <button id="catSave">Save words and photo to catalogue</button>
+      <p class="note" id="catMsg"></p>
+    </div>
+
     <label class="f">Piece name<input type="text" id="t_title" value="Kundan Bridal Ring"></label>
     <label class="f">Tagline<input type="text" id="t_tagline" value="Crafted for your forever"></label>
     <div class="row2">
@@ -1060,6 +1071,7 @@ async function runAI() {
     const tags = (Array.isArray(out.hashtags) ? out.hashtags : []).map(h => "#" + String(h).replace(/^#/, "")).join(" ");
     $("caption").textContent = [out.caption || "", tags].filter(Boolean).join("\n\n");
     $("captionWrap").classList.toggle("hide", !$("caption").textContent);
+    S.ai = out;
     drawThumbs(); return true;
   } catch (e) {
     $("aiText").textContent = e.message || "Something went wrong reaching Claude. Press the button to try again.";
@@ -1069,6 +1081,36 @@ async function runAI() {
 $("copyCap").onclick = async () => {
   try { await navigator.clipboard.writeText($("caption").textContent); $("copyCap").textContent = "Copied"; setTimeout(() => $("copyCap").textContent = "Copy caption", 1500); }
   catch { const r = document.createRange(); r.selectNodeContents($("caption")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); $("copyCap").textContent = "Selected, press Ctrl+C"; }
+};
+
+/* ---------- Art of Eskeml catalogue (the business dashboard's API, same site) ---------- */
+function catPass() { try { return $("catPass").value || sessionStorage.getItem("aoe-pass") || ""; } catch { return $("catPass").value; } }
+function catSku() { const v = $("catSku").value.trim().toUpperCase(); if (!v) throw new Error("Enter the piece's SKU in the catalogue box first."); return v; }
+async function adminApi(action, body) {
+  const r = await fetch("/api/admin", { method: "POST", headers: { "Content-Type": "application/json", "x-admin-passcode": catPass() }, body: JSON.stringify({ action, ...body }) });
+  const out = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(out.error || `The server answered ${r.status}.`);
+  try { sessionStorage.setItem("aoe-pass", catPass()); } catch {}
+  return out;
+}
+async function catUpload(blob, filename) {
+  const sku = catSku(), kind = blob.type.startsWith("video") ? "reel" : "photo";
+  const { upload_url, public_url } = await adminApi("pieces.upload_url", { sku, filename, kind });
+  const r = await fetch(upload_url, { method: "PUT", headers: { "Content-Type": blob.type || "application/octet-stream", "x-upsert": "true" }, body: blob });
+  if (!r.ok) throw new Error("Upload failed. Check the storage bucket exists and is public.");
+  await adminApi("pieces.add_media", { sku, kind, url: public_url });
+}
+$("catSave").onclick = async () => {
+  const btn = $("catSave"); btn.disabled = true; $("catMsg").textContent = "Saving…";
+  try {
+    const sku = catSku(); readText();
+    const ai = S.ai || {};
+    await adminApi("pieces.save_creative", { sku, name: S.text.title, tagline: S.text.tagline, caption: ai.caption || "", hashtags: Array.isArray(ai.hashtags) ? ai.hashtags : [] });
+    let photo = "";
+    if (S.orig) { try { await catUpload(await photoBlob(), `${slug(S.text.title)}.jpg`); photo = " and photo"; } catch (e) { photo = ` (photo not uploaded: ${e.message})`; } }
+    $("catMsg").textContent = `Saved words${photo} to ${sku}. Add weight and making charges in the dashboard.`;
+  } catch (e) { $("catMsg").textContent = e.message; }
+  finally { btn.disabled = false; }
 };
 
 /* ---------- AI services (via this app's own server routes) ---------- */
@@ -1265,7 +1307,17 @@ function addResult(st, { blob, ext }) {
   const btn = document.createElement("button"); btn.textContent = "Save"; btn.className = "primary";
   const name = `${slug(S.text.brand)}-${slug(S.text.title)}-${st.id}-${$("aspect").value.replace(":", "x")}.${ext}`;
   btn.onclick = () => { const a = document.createElement("a"); a.href = v.src; a.download = name; document.body.append(a); a.click(); a.remove(); setStatus(`Saved ${name}`); };
-  row.append(v, info, btn); $("results").prepend(row);
+  row.append(v, info, btn);
+  if (AI.catalogue) {
+    const cat = document.createElement("button"); cat.textContent = "Add to catalogue";
+    cat.onclick = async () => {
+      cat.disabled = true;
+      try { await catUpload(blob, name); cat.textContent = "Added"; setStatus(`Added ${name} to ${catSku()}`); }
+      catch (e) { setStatus(e.message); cat.disabled = false; }
+    };
+    row.append(cat);
+  }
+  $("results").prepend(row);
 }
 async function runRender(list) {
   $("renderBtn").disabled = $("renderAllBtn").disabled = true;
@@ -1410,6 +1462,9 @@ async function boot() {
   try { Object.assign(AI, await fetch("/api/health").then(r => r.json())); } catch {}
   $("pillPR").classList.toggle("on", AI.photoroom); $("pillRW").classList.toggle("on", AI.runway); $("pillCL").classList.toggle("on", AI.claude);
   $("aiCut").disabled = $("aiBackdrop").disabled = !AI.photoroom; $("aiVideo").disabled = !AI.runway; $("aiBtn").disabled = !AI.claude;
+  $("catBox").hidden = !AI.catalogue; try { $("catPass").value = sessionStorage.getItem("aoe-pass") || ""; } catch {}
+  // Opened from the dashboard's "Make next" card: fill in the piece's SKU.
+  const wantSku = new URLSearchParams(location.search).get("sku"); if (wantSku) $("catSku").value = wantSku.toUpperCase();
   $("autoClipWrap").hidden = !AI.runway; $("passWrap").hidden = !AI.passcode;
   const off = [!AI.photoroom && "Photoroom (PHOTOROOM_API_KEY)", !AI.runway && "Runway (RUNWAYML_API_SECRET)", !AI.claude && "Claude (ANTHROPIC_API_KEY)"].filter(Boolean);
   $("aiNote").textContent = off.length ? `Not switched on yet: ${off.join(", ")}. Add the keys in your hosting settings to enable them.` : "All AI services are on.";

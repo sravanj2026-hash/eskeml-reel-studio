@@ -17,7 +17,8 @@ http.createServer(async (req, res) => {
       const { default: handler } = await import(`./api/${name}.js`);
       const chunks = []; for await (const c of req) chunks.push(c);
       const raw = Buffer.concat(chunks).toString();
-      req.body = raw && (req.headers["content-type"] || "").includes("json") ? JSON.parse(raw) : {};
+      req.rawBody = raw; // webhooks check Meta's signature against the exact bytes
+      try { req.body = raw && (req.headers["content-type"] || "").includes("json") ? JSON.parse(raw) : {}; } catch { req.body = {}; }
       req.query = Object.fromEntries(url.searchParams);
       return await handler(req, res);
     }
@@ -29,4 +30,4 @@ http.createServer(async (req, res) => {
     if (!res.headersSent) { res.writeHead(e.code === "ENOENT" || e.code === "ERR_MODULE_NOT_FOUND" ? 404 : 500); }
     res.end(e.code === "ENOENT" ? "Not found" : String(e.message));
   }
-}).listen(port, () => console.log(`Eskeml Reel Studio on http://localhost:${port}`));
+}).listen(port, () => console.log(`Eskeml Reel Studio on http://localhost:${port}  ·  dashboard: http://localhost:${port}/admin.html`));
