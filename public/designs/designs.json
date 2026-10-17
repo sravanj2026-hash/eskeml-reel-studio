@@ -2,11 +2,11 @@
   "designs": [
     {
       "id": "dasara-bangles-classic",
-      "title": "Dasara Gold Bangles (clean premium style)",
-      "format": "Instagram post + reel (9:16)",
-      "idea": "Clean, premium look like big jewellery brand ads: soft cream background, bangles big and sharp, short classy text.",
-      "image": "/designs/dasara-bangles-classic-post.jpg",
-      "video": "/designs/dasara-bangles-classic-reel.mp4",
+      "title": "Dasara Gold Bangles (HD, with 3D turn)",
+      "format": "Instagram post + reel (9:16) with 3D turning shot",
+      "idea": "Clean premium look like big jewellery brand ads: HD studio picture of the bangles, soft cream background, a 3D turning shot, short classy text.",
+      "image": "/designs/dasara-bangles-hd-post.jpg",
+      "video": "/designs/dasara-bangles-hd-reel.mp4",
       "canva_url": null,
       "caption": "Made for your Dasara. ✨\n\nHandcrafted gold bangles with emeralds, rubies and sparkling white stones, set by hand with peacock motifs.\n\nWishing you and your family a very Happy Dasara! 🙏\n\nDM or WhatsApp us to order.",
       "hashtags": [
@@ -26,6 +26,10 @@
         "Open Instagram, tap + and choose Reel. Pick the video.",
         "Add a soft festive song from Instagram music.",
         "Copy the caption and paste it. Then tap Share."
+      ],
+      "images": [
+        "/designs/dasara-bangles-hd-post.jpg",
+        "/designs/dasara-bangles-hd.jpg"
       ]
     },
     {
