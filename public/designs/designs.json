@@ -1,6 +1,38 @@
 {
   "designs": [
     {
+      "id": "dasara-bangles-durga",
+      "title": "Dasara Gold Bangles (Durga Devi opening)",
+      "format": "Instagram reel (9:16) + post (4:5)",
+      "idea": "Opens with a gold Durga Devi outline glowing in and Dasara wishes ('May Maa Durga bless you with joy, prosperity and success', wishes from Art of Eskeml), then the super reel: owner's bangle video in gold frames, emerald close-up with twinkles, photo deck, temple arch, trendy outline words and zoom transitions, logo ending.",
+      "image": "/designs/dasara-bangles-durga-cover.jpg",
+      "images": [
+        "/designs/dasara-bangles-durga-cover.jpg"
+      ],
+      "video": "/designs/dasara-bangles-durga-reel.mp4",
+      "canva_url": null,
+      "caption": "Made for your Dasara. ✨\n\nHandcrafted gold bangles with emeralds, rubies and sparkling white stones, set by hand with peacock motifs.\n\nWishing you and your family a very Happy Dasara! 🙏\n\nDM or WhatsApp us to order.",
+      "hashtags": [
+        "ArtOfEskeml",
+        "HappyDasara",
+        "Dussehra",
+        "Vijayadashami",
+        "GoldBangles",
+        "BanglesLove",
+        "IndianJewellery",
+        "HandcraftedJewellery",
+        "FestiveLook",
+        "TempleJewellery",
+        "EskemlJewellery"
+      ],
+      "steps": [
+        "Tap Download video and Download picture.",
+        "Open Instagram, tap + and choose Reel. Pick the video.",
+        "Add a soft festive song from Instagram music.",
+        "Copy the caption and paste it. Then tap Share."
+      ]
+    },
+    {
       "id": "dasara-bangles-super",
       "title": "Dasara Gold Bangles (super reel, trendy edit)",
       "format": "Instagram reel (9:16) + post (4:5)",
