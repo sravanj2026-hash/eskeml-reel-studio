@@ -1,6 +1,39 @@
 {
   "designs": [
     {
+      "id": "dasara-bangles-logo",
+      "title": "Dasara Gold Bangles (logo + 360 reel)",
+      "format": "Instagram reel (9:16) + post (4:5)",
+      "idea": "Maroon and gold Dasara reel: Eskeml logo reveal, marigold garlands, mandala, bow and arrow, bangles turning 360 degrees on a gold stand, HD picture in a temple arch frame.",
+      "image": "/designs/dasara-bangles-logo-post.jpg",
+      "images": [
+        "/designs/dasara-bangles-logo-post.jpg",
+        "/designs/dasara-bangles-hd.jpg"
+      ],
+      "video": "/designs/dasara-bangles-logo-reel.mp4",
+      "canva_url": null,
+      "caption": "Made for your Dasara. ✨\n\nHandcrafted gold bangles with emeralds, rubies and sparkling white stones, set by hand with peacock motifs.\n\nWishing you and your family a very Happy Dasara! 🙏\n\nDM or WhatsApp us to order.",
+      "hashtags": [
+        "ArtOfEskeml",
+        "HappyDasara",
+        "Dussehra",
+        "Vijayadashami",
+        "GoldBangles",
+        "BanglesLove",
+        "IndianJewellery",
+        "HandcraftedJewellery",
+        "FestiveLook",
+        "TempleJewellery",
+        "EskemlJewellery"
+      ],
+      "steps": [
+        "Tap Download video and Download picture.",
+        "Open Instagram, tap + and choose Reel. Pick the video.",
+        "Add a soft festive song from Instagram music.",
+        "Copy the caption and paste it. Then tap Share."
+      ]
+    },
+    {
       "id": "dasara-bangles-classic",
       "title": "Dasara Gold Bangles (HD, with 3D turn)",
       "format": "Instagram post + reel (9:16) with 3D turning shot",
